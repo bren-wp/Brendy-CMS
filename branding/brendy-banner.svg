@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" role="img" aria-labelledby="title desc">
+<title id="title">Brendy CMS</title><desc id="desc">Create. Publish. Own. Brendigo LTD.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#101b37"/><stop offset="1" stop-color="#302069"/></linearGradient><linearGradient id="b" x2="1" y2="1"><stop stop-color="#2563eb"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>
+<rect width="1200" height="380" rx="28" fill="url(#bg)"/>
+<circle cx="1100" cy="10" r="245" fill="#7263e8" opacity=".12"/><circle cx="1050" cy="410" r="240" fill="#4984ff" opacity=".12"/>
+<g transform="translate(65 84) scale(.41)"><rect x="24" y="24" width="464" height="464" rx="112" fill="url(#b)"/><path fill="#fff" fill-rule="evenodd" d="M152 104h132c58 0 94 31 94 80 0 35-18 61-48 75 37 12 58 42 58 82 0 56-40 67-106 67H152V104Zm72 60v68h52c23 0 38-13 38-34s-15-34-38-34h-52Zm0 124v60h62c24 0 38-10 38-30s-14-30-38-30h-62Z"/></g>
+<g font-family="Arial,Helvetica,sans-serif" fill="#fff"><text x="310" y="135" font-size="68" font-weight="700">Brendy CMS</text><text x="313" y="193" font-size="32" fill="#c7d5ff">Create. Publish. Own.</text><text x="313" y="245" font-size="21" fill="#b6c3dc">Your website. Your content. Your control.</text><text x="313" y="300" font-size="17" fill="#aab5da" letter-spacing="2">BRENDIGO LTD</text></g></svg>
