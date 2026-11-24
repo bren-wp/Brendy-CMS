@@ -311,7 +311,7 @@ final class RestoreJournal
         if ($this->pending() || !preg_match('/^restore-[a-f0-9]{32}$/D', $stage)) return false;
         if (!$this->ledger->initialize() || $this->ledger->keyStatus()!=='active') return false;
         $state=$this->ledger->query();
-        if ($state===false || $state['active']!==null || $state['total']>=RecoveryLedger::MAX_HISTORY) return false;
+        if ($state===false || $state['active']!==null || $state['total']>=RecoveryLedger::transactionLimit()) return false;
         $plan = ['schema'=>3,'seq'=>$state['total']+1,'head'=>$state['last']===null?str_repeat('0',64):RecoveryLedger::digest($state['last']),'state'=>'prepared','id'=>bin2hex(random_bytes(16)),'stage'=>$stage,'roots'=>[]];
         $paths = $this->paths($plan);
         foreach (['live','tmp','container','stage'] as $key) {
@@ -696,7 +696,7 @@ final class RestoreJournal
         $wanted=[]; $scanned=0;
         try {
             foreach (new DirectoryIterator($this->tmp) as $entry) {
-                if (++$scanned>10000 || count($wanted)>=100) break;
+                if (++$scanned>RecoveryLedger::MAINTENANCE_SCAN_LIMIT || count($wanted)>=100) break;
                 if (preg_match('/^(?:backup-restore-rollback-([a-f0-9]{32})|restore-gc-([a-f0-9]{32})\.json)$/D',$entry->getFilename(),$m)) {
                     $id=$m[1]!==''?$m[1]:$m[2]; $wanted[$id]=$id;
                 }
@@ -716,7 +716,7 @@ final class RestoreJournal
         $count = 0;
         try {
             foreach (new DirectoryIterator($this->tmp) as $entry) {
-                if (++$count > 10000 || count($out['items']) >= 100) return $out;
+                if (++$count > RecoveryLedger::MAINTENANCE_SCAN_LIMIT || count($out['items']) >= 100) return $out;
                 $name = $entry->getFilename();
                 if (preg_match('/^restore-gc-([a-f0-9]{32})\.json$/D',$name,$gc)) {
                     $name='backup-restore-rollback-'.$gc[1];

@@ -18,7 +18,13 @@ return [
         $root=$l->open(file_get_contents($tmp.'restore-ledger-lookup-bucket-ab.json'),'ledger-lookup-bucket-v1');
         brendyTestAssert($root['schema']===2 && count($root['children'])>1 && $l->lookup($id)===$s['history'][256],'split/lookup');
         $prefix=substr(hash('sha256',$id),0,3);
-        $path=$tmp.'restore-ledger-lookup-bucket-'.$prefix.'.json';
+        $path=$tmp.RecoveryLedger::LOOKUP_DIRECTORY.'/ab/'.substr($prefix,-1).'.json';
+        brendyTestAssert(is_file($path) && (@fileperms(dirname($path))&0777)===0700,'hierarchical private node');
+        $legacy=$tmp.'restore-ledger-lookup-bucket-'.$prefix.'.json';
+        $original=file_get_contents($path);
+        brendyTestAssert(rename($path,$legacy) && $l->lookup($id)===$s['history'][256],'legacy flat fallback');
+        brendyTestAssert($l->rebuildLookup() && file_get_contents($path)===$original,'cache migration');
+        unlink($legacy);
         $old=file_get_contents($path); Filesystem::atomicWrite($path,'tampered',0600);
         brendyTestAssert($l->lookup($id)===$s['history'][256] && $l->query()!==false,'tamper fallback');
         Filesystem::atomicWrite($path,$old,0600);

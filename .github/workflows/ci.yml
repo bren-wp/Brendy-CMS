@@ -56,6 +56,15 @@ jobs:
           trap 'rm -rf "$d"' EXIT
           php -d memory_limit=256M tests/recovery-active-scale.php seed "$d"
           php -d memory_limit=32M tests/recovery-active-scale.php exercise "$d"
+      - name: Million active transactions (opt-in scale fixture)
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
+        env:
+          BRENDY_RECOVERY_LARGE_LEDGER: '1'
+        run: |
+          d=$(mktemp -d)
+          trap 'rm -rf "$d"' EXIT
+          php -d memory_limit=32M tests/recovery-million-active.php seed "$d"
+          php -d memory_limit=32M tests/recovery-million-active.php exercise "$d"
   browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 12

@@ -11,8 +11,19 @@ final class RecoveryLedger
     const KEY = 'restore-ledger-key.php';
     const LOOKUP = 'restore-ledger-lookup.json';
     const RETIREMENT = 'restore-ledger-retirement.json';
+    const LOOKUP_DIRECTORY = 'restore-ledger-lookup-nodes';
     const LIMIT = 16777216;
-    const MAX_HISTORY = 100000;
+    const MAX_HISTORY = 1000000;
+    const DEFAULT_HISTORY_LIMIT = 100000;
+    // Bounded scan budget: two generations of redundant million-record
+    // shards/pages plus existing GC evidence, with headroom for interrupted rotation.
+    const MAINTENANCE_SCAN_LIMIT = 65536;
+    const RETIREMENT_CERT_LIMIT = 50000;
+    const SWEEP_BATCH_LIMIT = 1000;
+    public static function transactionLimit(): int
+    {
+        return getenv('BRENDY_RECOVERY_LARGE_LEDGER')==='1'?self::MAX_HISTORY:self::DEFAULT_HISTORY_LIMIT;
+    }
     const INDEX_PAGE_SIZE = 64;
     const INDEX_THRESHOLD = 16;
     const SHARD_SIZE = 256;
@@ -22,7 +33,7 @@ final class RecoveryLedger
     private function path(string $name): string { return $this->tmp . DS . $name; }
     public function exists(): bool
     {
-        if (RestoreJournal::identity($this->path(self::KEY)) !== null || RestoreJournal::identity($this->path(self::FILE)) !== null || RestoreJournal::identity($this->path(self::MIRROR)) !== null || RestoreJournal::identity($this->path(self::RETIREMENT)) !== null || RestoreJournal::identity($this->path(self::LOOKUP)) !== null) return true;
+        if (RestoreJournal::identity($this->path(self::KEY)) !== null || RestoreJournal::identity($this->path(self::FILE)) !== null || RestoreJournal::identity($this->path(self::MIRROR)) !== null || RestoreJournal::identity($this->path(self::RETIREMENT)) !== null || RestoreJournal::identity($this->path(self::LOOKUP)) !== null || RestoreJournal::identity($this->path(self::LOOKUP_DIRECTORY)) !== null) return true;
         // A configured external checkpoint is itself evidence of an installation.
         $checkpoint=getenv('BRENDY_RECOVERY_CHECKPOINT');
         if (($checkpoint!==false && $checkpoint!=='') || (($pub=getenv('BRENDY_RECOVERY_ANCHOR_PUBLIC_KEY'))!==false && $pub!=='')) return true;
@@ -32,7 +43,7 @@ final class RecoveryLedger
         try {
             $count=0;
             foreach (new FilesystemIterator($this->tmp,FilesystemIterator::SKIP_DOTS) as $entry) {
-                if (++$count>10000 || preg_match('/^restore-(?:ledger-(?:shard|page)-(?:copy-)?[a-f0-9]{64}|ledger-lookup-bucket-[a-f0-9]{2,8}|gc-[a-f0-9]{32}(?:-cursor)?)\.json$/D',$entry->getFilename())) return true;
+                if (++$count>self::MAINTENANCE_SCAN_LIMIT || preg_match('/^restore-(?:ledger-(?:shard|page)-(?:copy-)?[a-f0-9]{64}|ledger-lookup-bucket-[a-f0-9]{2,8}|gc-[a-f0-9]{32}(?:-cursor)?)\.json$/D',$entry->getFilename())) return true;
             }
         } catch (Throwable $e) { return true; }
         return false;
@@ -131,7 +142,7 @@ final class RecoveryLedger
         $files=[]; $count=0;
         try {
             foreach (new FilesystemIterator($this->tmp,FilesystemIterator::SKIP_DOTS) as $entry) {
-                if (++$count>10000) return false;
+                if (++$count>self::MAINTENANCE_SCAN_LIMIT) return false;
                 $name=$entry->getFilename();
                 if (preg_match('/^restore-gc-([a-f0-9]{32})(-cursor)?\.json$/D',$name,$m)) $files[$name]=isset($m[2])?'gc-cursor-v1':'gc-plan-v1';
             }
@@ -174,9 +185,9 @@ final class RecoveryLedger
         if (RestoreJournal::identity($this->path(self::RETIREMENT))===null) return ['schema'=>1,'digests'=>[],'pages'=>[]];
         $raw=$this->privateRead(self::RETIREMENT,self::LIMIT);
         $value=is_string($raw)?$this->open($raw,'shard-retirement-v1'):false;
-        if (!is_array($value) || ($value['schema']??null)!==1 || !is_array($value['digests']??null) || count($value['digests'])>50000) return false;
+        if (!is_array($value) || ($value['schema']??null)!==1 || !is_array($value['digests']??null) || count($value['digests'])>self::RETIREMENT_CERT_LIMIT) return false;
         if (!array_key_exists('pages',$value)) $value['pages']=[];
-        if (!is_array($value['pages']) || count($value['pages'])>50000) return false;
+        if (!is_array($value['pages']) || count($value['pages'])>self::RETIREMENT_CERT_LIMIT) return false;
         foreach (['digests','pages'] as $type) foreach ($value[$type] as $digest=>$time) if (!is_string($digest) || !preg_match('/^[a-f0-9]{64}$/D',$digest) || !is_int($time) || $time<=0) return false;
         return $value;
     }
@@ -187,7 +198,7 @@ final class RecoveryLedger
         $old=hex2bin($ring['previous']); $count=0;
         try {
             foreach (new FilesystemIterator($this->tmp,FilesystemIterator::SKIP_DOTS) as $entry) {
-                if (++$count>10000) return false;
+                if (++$count>self::MAINTENANCE_SCAN_LIMIT) return false;
                 $name=$entry->getFilename();
                 if (!preg_match('/^restore-ledger-(shard|page)-(?:copy-)?([a-f0-9]{64})\.json$/D',$name,$m)) continue;
                 $page=$m[1]==='page'; $type=$page?'pages':'digests'; $digest=$m[2];
@@ -196,7 +207,7 @@ final class RecoveryLedger
                 if (!is_string($raw) || !hash_equals($digest,hash('sha256',$raw))) continue;
                 if ($page) {
                     if (!self::validRetiredPage(self::openWithKey($raw,'ledger-page-v3',$old))) continue;
-                    if (count($proof['pages'])>=50000) return false;
+                    if (count($proof['pages'])>=self::RETIREMENT_CERT_LIMIT) return false;
                     $proof['pages'][$digest]=time();
                     continue;
                 }
@@ -204,7 +215,7 @@ final class RecoveryLedger
                 if (!is_array($shard) || ($shard['schema']??null)!==1 || !is_int($shard['start']??null) || $shard['start']<1 ||
                     !is_array($shard['entries']??null) || !array_is_list($shard['entries']) || count($shard['entries'])!==self::SHARD_SIZE) continue;
                 foreach ($shard['entries'] as $i=>$r) if (!self::validReceipt($r,$shard['start']+$i)) continue 2;
-                if (count($proof['digests'])>=50000) return false;
+                if (count($proof['digests'])>=self::RETIREMENT_CERT_LIMIT) return false;
                 $proof['digests'][$digest]=time();
             }
         } catch (Throwable $e) { return false; }
@@ -265,7 +276,7 @@ final class RecoveryLedger
         $candidates=[]; $count=0;
         try {
             foreach (new FilesystemIterator($this->tmp,FilesystemIterator::SKIP_DOTS) as $entry) {
-                if (++$count>10000) return false;
+                if (++$count>self::MAINTENANCE_SCAN_LIMIT) return false;
                 $name=$entry->getFilename();
                 if (!preg_match('/^restore-ledger-'.$kind.'-(?:copy-)?([a-f0-9]{64})\.json$/D',$name,$m) || isset($refs[$m[1]])) continue;
                 $path=$this->path($name); $id=RestoreJournal::identity($path); $mtime=@filemtime($path);
@@ -274,7 +285,7 @@ final class RecoveryLedger
                 if (!is_string($raw) || hash('sha256',$raw)!==$m[1]) continue;
                 $value=$this->open($raw,$page?'ledger-page-v3':'ledger-shard-v2');
                 if (($page?!self::validRetiredPage($value):$value===false) && !isset($proof[$type][$m[1]])) continue;
-                $candidates[$name]=[$id,$m[1],strlen($raw),$mtime];
+                if (count($candidates)<self::SWEEP_BATCH_LIMIT) $candidates[$name]=[$id,$m[1],strlen($raw),$mtime];
             }
         } catch (Throwable $e) { return false; }
         if (!$remove) return array_keys($candidates);
@@ -393,6 +404,44 @@ final class RecoveryLedger
     // Callers hold the restore gate; rebuild requires exclusive access.
     private static function lookupBucket(string $id): string { return substr(hash('sha256',$id),0,2); }
     private function bucketName(string $bucket): string { return 'restore-ledger-lookup-bucket-'.$bucket.'.json'; }
+    // Child files are isolated from recovery maintenance scans. Each directory
+    // is a single hash prefix and has at most sixteen direct child directories.
+    // Existing flat cache nodes are read only as a migration fallback.
+    private function lookupNodeName(string $prefix,bool $create=false)
+    {
+        if (!preg_match('/^[a-f0-9]{2,8}$/D',$prefix)) return false;
+        if (strlen($prefix)===2) return $this->bucketName($prefix);
+        $root=RestoreJournal::identity($this->tmp);
+        if (!is_array($root) || $root[2]!==0040000 || realpath($this->tmp)!==$this->tmp) return false;
+        $relative=self::LOOKUP_DIRECTORY;
+        $parts=[self::LOOKUP_DIRECTORY,substr($prefix,0,2)];
+        for ($i=2;$i<strlen($prefix)-1;$i++) $parts[]=$prefix[$i];
+        $parent=$this->tmp; $parentId=$root; $relative='';
+        foreach ($parts as $part) {
+            $relative.=($relative===''?'':DS).$part;
+            $path=$this->path($relative);
+            $id=RestoreJournal::identity($path);
+            if ($id===null && $create) {
+                if (RestoreJournal::identity($parent)!==$parentId || !@mkdir($path,0700)) return false;
+                $id=RestoreJournal::identity($path);
+            }
+            if (!is_array($id) || $id[2]!==0040000 || $id[0]!==$root[0] || realpath($path)!==$path || (@fileperms($path)&0777)!==0700 ||
+                RestoreJournal::identity($parent)!==$parentId) return false;
+            $parent=$path; $parentId=$id;
+        }
+        return $relative.DS.substr($prefix,-1).'.json';
+    }
+    private function lookupNodeRaw(string $prefix,string $digest)
+    {
+        $name=$this->lookupNodeName($prefix);
+        if ($name!==false) {
+            $raw=$this->privateRead($name,self::LIMIT);
+            if (is_string($raw) && hash_equals($digest,hash('sha256',$raw))) return $raw;
+        }
+        if (strlen($prefix)===2) return false;
+        $raw=$this->privateRead($this->bucketName($prefix),self::LIMIT);
+        return is_string($raw) && hash_equals($digest,hash('sha256',$raw))?$raw:false;
+    }
     // Derived prefix trie: bounded leaves and authenticated child digests.
     // Fixed prefix names avoid unbounded immutable cache artifacts. Interrupted
     // publication can invalidate a cache, never the authoritative ledger.
@@ -420,8 +469,9 @@ final class RecoveryLedger
         } else $value=['schema'=>1,'bucket'=>$bucket,'ids'=>$ids];
         $raw=$this->seal($value,'ledger-lookup-bucket-v1');
         if (!is_string($raw) || strlen($raw)>self::LIMIT) return false;
-        $name=$this->bucketName($bucket);
-        if ($this->privateRead($name,self::LIMIT)!==$raw && !Filesystem::atomicWrite($this->path($name),$raw,0600)) return false;
+        $name=$this->lookupNodeName($bucket,true);
+        if ($name===false || ($this->privateRead($name,self::LIMIT)!==$raw && !Filesystem::atomicWrite($this->path($name),$raw,0600))) return false;
+        if ($this->lookupNodeName($bucket)!==$name || $this->privateRead($name,self::LIMIT)!==$raw) return false;
         return hash('sha256',$raw);
     }
     private function writeLookupManifest(string $generation,int $count,array $buckets): bool
@@ -471,8 +521,8 @@ final class RecoveryLedger
     private function readLookupNode(string $prefix,string $digest,array $keys)
     {
         if (!preg_match('/^[a-f0-9]{2,8}$/D',$prefix)) return false;
-        $raw=$this->privateRead($this->bucketName($prefix),self::LIMIT);
-        if (!is_string($raw) || !hash_equals($digest,hash('sha256',$raw))) return false;
+        $raw=$this->lookupNodeRaw($prefix,$digest);
+        if (!is_string($raw)) return false;
         $value=self::openWithKeys($raw,'ledger-lookup-bucket-v1',$keys);
         if (!is_array($value) || ($value['bucket']??null)!==$prefix) return false;
         if (($value['schema']??null)===1) {
@@ -576,7 +626,7 @@ final class RecoveryLedger
                 ($expected===null && $next['state']!=='prepared') ||
                 ($expected!==null && (($expected['id']??null)!==$next['id'] || ($expected['marker']??null)!==($next['marker']??null) || ($expected['state']??null)!=='prepared' || $next['state']!=='committed'))) return false;
         } elseif ($receipt===null || $expected===null || !self::validReceipt($receipt,$seq) || $receipt['id']!==($expected['id']??null) || $receipt['marker']!==($expected['marker']??null) || $receipt['stage']!==($expected['stage']??null) || $receipt['result']!==($expected['state']==='committed'?'committed':'rolled-back') || $seq>self::MAX_HISTORY) return false;
-        if ($next!==null && $seq>self::MAX_HISTORY) return false;
+        if ($next!==null && ($seq>self::MAX_HISTORY || ($expected===null && $seq>self::transactionLimit()))) return false;
         // Legacy monolithic state is migrated in bounded segments when possible.
         $index['active']=$next;
         if ($receipt!==null) { $index['tail'][]=$receipt; ++$index['records']; }

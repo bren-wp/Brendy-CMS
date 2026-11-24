@@ -24,7 +24,7 @@ try {
     }
     if (in_array($argv[1],['lookup','lookup-indexed'],true)) {
         $value=$argv[3]; $id=preg_match('/^[a-f0-9]{32}$/D',$value)?$value:null;
-        $seq=$id===null && preg_match('/^[1-9][0-9]{0,5}$/D',$value)?(int)$value:null;
+        $seq=$id===null && preg_match('/^[1-9][0-9]{0,6}$/D',$value)?(int)$value:null;
         if ($id===null && $seq===null) exit(2);
         if ($argv[1]==='lookup-indexed' && $id!==null) {
             $receipt=$ledger->lookup($id); if ($receipt===false) exit(4);
