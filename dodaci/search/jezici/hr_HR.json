@@ -1,0 +1,25 @@
+{
+  "plugin-data": {
+    "name": "Pretraživanje",
+    "description": "Omogućuje posjetiteljima pretraživanje sadržaja web-stranice."
+  },
+  "search": "Pretraži",
+  "show-button-search": "Prikaži gumb za pretraživanje",
+  "search-results-for": "Rezultati pretraživanja za",
+  "result-found": "pronađeni rezultat",
+  "results-found": "pronađenih rezultata",
+  "no-results-found": "Nema rezultata",
+  "no-pages-found-for-the-search": "Nije pronađena nijedna stranica koja odgovara upitu „%s”",
+  "suggestions": "Prijedlozi",
+  "check-your-spelling": "Provjerite pravopis",
+  "try-different-keywords": "Pokušajte s drugim ključnim riječima",
+  "try-more-general-keywords": "Pokušajte s općenitijim izrazima",
+  "minimum-number-of-characters-when-searching": "Najmanji broj znakova za pretraživanje",
+  "highlight-search-terms-in-results": "Istakni tražene izraze u rezultatima",
+  "show-result-count": "Prikaži broj rezultata",
+  "search-in-tags": "Pretražuj oznake",
+  "search-in-categories": "Pretražuj kategorije",
+  "excerpt-length-(characters)": "Duljina sažetka (znakovi)",
+  "please-enter-at-least-%d-characters-to-search": "Za pretraživanje unesite najmanje %d znakova.",
+  "words-to-cache-per-page": "Broj riječi za indeksiranje po stranici"
+}

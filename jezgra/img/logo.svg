@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Brendy</title>
+  <desc id="description">Brendy monogram</desc>
+  <defs>
+    <linearGradient id="brendy-gradient" x1="72" y1="48" x2="440" y2="464" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#brendy-gradient)"/>
+  <path fill="#fff" fill-rule="evenodd" d="M152 104h132c58 0 94 31 94 80 0 35-18 61-48 75 37 12 58 42 58 82 0 56-40 67-106 67H152V104Zm72 60v68h52c23 0 38-13 38-34s-15-34-38-34h-52Zm0 124v60h62c24 0 38-10 38-30s-14-30-38-30h-62Z"/>
+</svg>

@@ -1,0 +1,38 @@
+/* Brendy Comments — frontend styles aligned with shared theme tokens. */
+.brendy-comments { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--brendy-border, #dbe3ef); font-family: inherit; color: var(--brendy-text, #172033); }
+.brendy-comments h3 { margin-bottom: 1rem; }
+.brendy-comments-flash { padding: .75rem 1rem; margin-bottom: 1.5rem; background: color-mix(in srgb, var(--brendy-accent, #2563eb) 12%, var(--brendy-surface, #fff)); border: 1px solid color-mix(in srgb, var(--brendy-accent, #2563eb) 35%, var(--brendy-border, #dbe3ef)); border-radius: .375rem; color: var(--brendy-text, #172033); }
+.brendy-comments-empty, .brendy-comments-closed { color: var(--brendy-muted, #64748b); font-style: italic; margin: 1.5rem 0; }
+.brendy-comments-list { list-style: none; padding: 0; margin: 0 0 2rem; }
+.brendy-comment { display: block; padding: 1rem 0; border-bottom: 1px solid var(--brendy-border, #dbe3ef); }
+.brendy-comment-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; flex-wrap: wrap; }
+.brendy-comment-author { font-size: .95rem; }
+.brendy-comment-badge { display: inline-block; padding: .1rem .5rem; margin-left: .35rem; font-size: .7rem; font-weight: 600; text-transform: uppercase; border-radius: .2rem; background: #6c757d; color: #fff; vertical-align: middle; }
+.brendy-comment-badge-admin { background: #b42318; }
+.brendy-comment-badge-editor { background: #175cd3; }
+.brendy-comment-date { margin-left: auto; color: var(--brendy-muted, #64748b); font-size: .85rem; }
+.brendy-comment-body p { margin: .5rem 0; line-height: 1.55; }
+.brendy-comment-body a { overflow-wrap: anywhere; }
+.brendy-comment-form { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--brendy-border, #dbe3ef); border-radius: .5rem; background: var(--brendy-surface, #fff); }
+.brendy-comment-form h4 { margin-top: 0; margin-bottom: 1rem; }
+.brendy-comment-form-logged { margin-bottom: 1rem; color: var(--brendy-muted, #64748b); }
+.brendy-comment-form-row { margin-bottom: 1rem; }
+.brendy-comment-form-row label { display: block; margin-bottom: .25rem; font-weight: 500; font-size: .9rem; }
+.brendy-comment-form-row input, .brendy-comment-form-row textarea { width: 100%; padding: .5rem .75rem; border: 1px solid var(--brendy-border, #dbe3ef); border-radius: .375rem; background: var(--brendy-bg, #f8fafc); color: var(--brendy-text, #172033); font-family: inherit; font-size: .95rem; box-sizing: border-box; }
+.brendy-comment-form-row textarea { resize: vertical; min-height: 100px; }
+.brendy-comment-form-row small { display: block; margin-top: .25rem; color: var(--brendy-muted, #64748b); font-size: .8rem; }
+.brendy-comment-form-row .req { color: #d92d20; }
+.brendy-comment-hp { position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.brendy-comment-turnstile { margin: 1rem 0; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+.brendy-comment-form-actions { margin-top: 1rem; }
+.brendy-comment-form-actions button { padding: .5rem 1.25rem; background: var(--brendy-accent, #2563eb); color: #fff; border: 1px solid transparent; border-radius: .375rem; font-size: .95rem; cursor: pointer; }
+.brendy-comment-form-actions button:hover { filter: brightness(.92); }
+.brendy-comment-form-row input:focus-visible, .brendy-comment-form-row textarea:focus-visible, .brendy-comment-form-actions button:focus-visible, .brendy-comments-paginator a:focus-visible { outline: 3px solid color-mix(in srgb, var(--brendy-accent, #2563eb) 45%, transparent); outline-offset: 2px; }
+.brendy-comments-count { color: var(--brendy-muted, #64748b); font-weight: normal; }
+.brendy-comments-paginator { margin: 1.5rem 0; }
+.brendy-comments-paginator ul { display: flex; list-style: none; padding: 0; margin: 0; gap: .25rem; flex-wrap: wrap; }
+.brendy-comments-paginator li a, .brendy-comments-paginator li span { display: inline-block; padding: .35rem .7rem; border: 1px solid var(--brendy-border, #dbe3ef); border-radius: .375rem; color: var(--brendy-accent, #2563eb); text-decoration: none; font-size: .9rem; }
+.brendy-comments-paginator li.active span { background: var(--brendy-accent, #2563eb); border-color: var(--brendy-accent, #2563eb); color: #fff; }
+.brendy-comments-paginator li a:hover { background: color-mix(in srgb, var(--brendy-accent, #2563eb) 8%, var(--brendy-surface, #fff)); }
+@media (max-width: 36rem) { .brendy-comment-form { padding: 1rem; } .brendy-comment-date { width: 100%; margin-left: 0; } .brendy-comment-form-actions button { width: 100%; min-height: 44px; } }
+@media (forced-colors: active) { .brendy-comment-badge, .brendy-comment-form-actions button { border-color: ButtonText; } }

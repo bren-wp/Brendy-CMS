@@ -1,0 +1,53 @@
+.tox .tox-toolbar, .tox .tox-toolbar__overflow, .tox .tox-toolbar__primary {
+	border-top: none !important;
+}
+
+.tox-tinymce {
+	border-radius: .8rem !important;
+	border-color: var(--brendy-admin-border, #d7dde5) !important;
+	overflow: hidden;
+}
+
+.tox-tinymce:focus,
+.tox-tinymce--focused {
+	border-color: var(--brendy-admin-accent, #2563eb) !important;
+	box-shadow: 0 0 0 .18rem rgba(37, 99, 235, .13) !important;
+	outline: none !important;
+}
+
+.tox-edit-focus .tox-edit-area::before { opacity: 0 !important; }
+
+.brendy-editor-status {
+	display: flex;
+	align-items: center;
+	gap: .45rem;
+	min-height: 1.8rem;
+	padding: .35rem .15rem .05rem;
+	font-size: .78rem;
+}
+.brendy-editor-status::before {
+	content: "";
+	width: .45rem;
+	height: .45rem;
+	border-radius: 50%;
+	background: currentColor;
+	opacity: .55;
+}
+.brendy-editor-status[data-state="dirty"] { color: #b45309 !important; }
+.brendy-editor-status[data-state="saved"] { color: #15803d !important; }
+.brendy-editor-status[data-state="warning"] { color: #b91c1c !important; }
+
+@media (max-width: 767.98px) {
+	.tox-tinymce { min-height: 430px; }
+	.tox .tox-toolbar__group { padding-inline: 3px !important; }
+}
+
+/* Mobile editor chrome must never widen the admin viewport. */
+.tox.tox-tinymce,
+.tox .tox-editor-container,
+.tox .tox-editor-header,
+.tox .tox-toolbar-overlord { max-width: 100%; min-width: 0; }
+@media (max-width: 575.98px) {
+	.tox-tinymce { min-height: 360px; }
+	.tox .tox-toolbar__primary { overflow-x: auto; overscroll-behavior-inline: contain; }
+}

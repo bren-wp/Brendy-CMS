@@ -1,0 +1,55 @@
+{
+  "checked": "2026-11-25",
+  "findings": [
+    {
+      "component": "dompurify",
+      "local_version": "3.5.0 (local custom TinyMCE bundle)",
+      "id": "CVE-2026-75838",
+      "affected_range": "<3.4.13",
+      "status": "outside previously reported affected version range; local regression testing only, cloud unverified",
+      "source": "https://security-tracker.debian.org/tracker/CVE-2026-75838",
+      "action": "Verify current advisories and migrate to official patched TinyMCE build when available."
+    },
+    {
+      "component": "tinymce",
+      "local_version": "8.10.2",
+      "id": "CVE-2026-116675",
+      "status": "fixed in 8.9.3; media plugin not bundled in this CMS",
+      "source": "https://github.com/tinymce/tinymce/security/advisories/GHSA-mf2p-h6hf-fcwm"
+    },
+    {
+      "component": "prismjs",
+      "local_version": "1.30.0 (local codesample subset)",
+      "id": "CVE-2024-53382",
+      "affected_range": "<=1.29.0",
+      "status": "outside previously reported affected version range; runtime and upstream authenticity must be independently verified",
+      "source": "https://github.com/advisories/GHSA-x7hr-w5r2-h6wg",
+      "action": "Keep optional autoloader excluded; verify official package and migrate to official TinyMCE release when available."
+    },
+    {
+      "component": "dompurify",
+      "local_version": "3.5.0 (local custom TinyMCE bundle)",
+      "id": "GHSA-p98j-92pf-mc4p",
+      "affected_range": ">=3.4.13, <=3.4.15",
+      "status": "outside published affected version range; upstream local byte provenance unverified",
+      "source": "https://github.com/advisories/GHSA-p98j-92pf-mc4p"
+    },
+    {
+      "component": "dompurify",
+      "local_version": "3.5.0 (declared local custom TinyMCE bundle)",
+      "id": "CVE-2026-109345",
+      "affected_range": "<3.4.16 (advisory description)",
+      "status": "outside described affected range; upstream local byte provenance unverified",
+      "source": "https://github.com/advisories/GHSA-cjhx-p48c-gfm9"
+    },
+    {
+      "component": "dompurify",
+      "local_version": "3.5.0 (declared local custom TinyMCE bundle)",
+      "id": "CVE-2026-109344",
+      "affected_range": ">=3.4.13, <3.4.16 (advisory description)",
+      "status": "outside described affected range; upstream local byte provenance unverified",
+      "source": "https://github.com/advisories/GHSA-59fh-8xxf-p69h"
+    }
+  ],
+  "coverage": "Manual targeted review only; not a complete CVE database scan."
+}

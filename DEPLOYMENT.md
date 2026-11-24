@@ -1,0 +1,3 @@
+# Produkcijska konfiguracija
+
+Koristite podržanu i zakrpanu verziju PHP-a, HTTPS, ograničene dozvole datoteka i sigurnosne kopije izvan javnog webroota. Apache mora primjenjivati `.htaccess` i mod_rewrite, a na Nginxu ili drugom poslužitelju potrebno je ručno replicirati zabrane pristupa privatnom sadržaju, internim PHP datotekama, testovima i dokumentaciji. Dopušteni su samo javni uploadi i resursi tema/dodataka; spriječite izvršavanje uploadanih datoteka. Provjerite da zahtjevi prema privatnim direktorijima vraćaju 403/404, a `robots.txt` i aktivni `sitemap.xml` vraćaju odgovarajući sadržaj. Nemojte izložiti staging tražilicama.

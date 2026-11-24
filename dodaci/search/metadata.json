@@ -1,0 +1,13 @@
+{
+  "author": "Brendigo",
+  "email": "",
+  "website": "https://brendigo.com",
+  "icon": "search",
+  "category": "content",
+  "version": "1.7.4",
+  "releaseDate": "2026-11-24",
+  "brendyRelease": "2.42.28",
+  "license": "MIT",
+  "compatible": "2.0",
+  "notes": "Brendy CMS 2.42.2: Vidljivi tekst, osvježavanje indeksa, sigurno isticanje i ispravni SEO naslovi."
+}

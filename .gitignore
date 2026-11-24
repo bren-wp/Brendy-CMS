@@ -1,0 +1,10 @@
+# Installation-specific content and secrets
+/sadrzaj/*
+!/sadrzaj/.keep
+/brendy-content/
+.env
+.env.*
+*.pem
+*.key
+/tests/reports/
+*.zip

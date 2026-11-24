@@ -1,0 +1,139 @@
+{
+  "checked_on": "2026-11-24",
+  "scope": "locally vendored libraries; no npm/composer lockfile; not a complete verified SBOM",
+  "download_status": "jQuery 4.1.0 extracted from supplied Markdown; DOMPurify 3.5.0 from supplied ZIP, locally integrated into TinyMCE; registry verification pending.",
+  "components": [
+    {
+      "name": "tinymce",
+      "installed": "8.10.2",
+      "target": "8.10.2",
+      "paths": [
+        "jezgra/urednik/tinymce/**"
+      ],
+      "source": "https://www.tiny.cloud/docs/tinymce/latest/changelog/",
+      "status": "8.10.2 local custom build with DOMPurify 3.5.0; not byte-identical to upstream core. Cloud explicit environment opt-in only."
+    },
+    {
+      "name": "dompurify",
+      "installed": "3.5.0",
+      "target": "3.5.0",
+      "paths": [
+        "jezgra/urednik/tinymce/tinymce.min.js"
+      ],
+      "source": "https://github.com/cure53/DOMPurify",
+      "status": "Local TinyMCE bundle patched by replacing isolated DOMPurify factory with supplied 3.5.0 UMD, no global export. Cloud runtime unverified."
+    },
+    {
+      "name": "prismjs",
+      "installed": "1.30.0",
+      "target": "1.30.0",
+      "paths": [
+        "jezgra/urednik/tinymce/plugins/codesample/**"
+      ],
+      "source": "https://github.com/PrismJS/prism",
+      "status": "Local subset of supplied prism.js, core and existing languages; no optional plugins; source bytes not independently authenticated."
+    },
+    {
+      "name": "prism-themes",
+      "installed": "1.9.0 (notices; not independently verified)",
+      "target": "unverified",
+      "paths": [
+        "jezgra/urednik/tinymce/**"
+      ],
+      "source": "https://github.com/PrismJS/prism-themes",
+      "status": "Replaced with corresponding assets from TinyMCE 8.10.2; exact version per vendor notices only."
+    },
+    {
+      "name": "jquery",
+      "installed": "4.1.0",
+      "target": "4.1.0",
+      "paths": [
+        "jezgra/js/jquery.min.js"
+      ],
+      "source": "https://blog.jquery.com/2026/11/17/jquery-4-1-0-and-3-8-0-released-passing-the-torch/",
+      "status": "Extracted from supplied code; CDN byte authenticity not independently verified."
+    },
+    {
+      "name": "bootstrap",
+      "installed": "5.3.9",
+      "target": "5.3.9",
+      "paths": [
+        "jezgra/js/bootstrap.bundle.min.js",
+        "jezgra/css/bootstrap.min.css"
+      ],
+      "source": "https://getbootstrap.com/docs/4.6/end-of-life/",
+      "status": "CSS and JS match both supplied source and distribution ZIPs; upstream authenticity not independently verified."
+    },
+    {
+      "name": "popper.js",
+      "installed": "2.11.8",
+      "target": "bundled by Bootstrap 5 (Popper 2)",
+      "paths": [
+        "jezgra/js/bootstrap.bundle.min.js"
+      ],
+      "source": "https://getbootstrap.com/",
+      "status": "Bootstrap supplied source lockfile identifies 2.11.8; bundled runtime not independently authenticated."
+    },
+    {
+      "name": "select2",
+      "installed": "4.2.0",
+      "target": "4.2.0",
+      "paths": [
+        "jezgra/js/select2.full.min.js",
+        "jezgra/css/select2.min.css"
+      ],
+      "source": "https://www.npmjs.com/package/select2?activeTab=code",
+      "status": "Supplied archive bytes matched; component runtime tests with jQuery 4.1.0."
+    },
+    {
+      "name": "brendy-select2-skin",
+      "installed": "local integration",
+      "target": "local integration",
+      "paths": [
+        "jezgra/css/select2-brendy5.min.css"
+      ],
+      "source": "",
+      "status": "Legacy skin removed and replaced by Brendy CSS; Select2 engine unchanged."
+    },
+    {
+      "name": "bootstrap-icons",
+      "installed": "1.13.2",
+      "target": "1.13.2",
+      "paths": [
+        "jezgra/css/bootstrap-icons/**"
+      ],
+      "source": "https://icons.getbootstrap.com/",
+      "status": "Four runtime files match supplied ZIP; removed cloud-haze-1 supported by a separate local alias stylesheet. Upstream authenticity not independently verified."
+    },
+    {
+      "name": "jquery-sortable",
+      "installed": "unverified",
+      "target": "unverified",
+      "paths": [
+        "jezgra/js/jquery.sortable.min.js"
+      ],
+      "source": "",
+      "status": "Legacy public Theme::jsSortable() helper retained for third-party compatibility; no longer loaded by bundled admin."
+    },
+    {
+      "name": "parsedown",
+      "installed": "1.8.0",
+      "target": "1.8.0",
+      "paths": [
+        "jezgra/parsedown.class.php"
+      ],
+      "source": "https://github.com/erusev/parsedown/releases",
+      "status": "Byte-identical to supplied archive; license included."
+    },
+    {
+      "name": "jquery-ui",
+      "installed": "1.14.2",
+      "target": "1.14.2",
+      "paths": [
+        "jezgra/js/jquery-ui.min.js"
+      ],
+      "source": "https://jqueryui.com/",
+      "status": "Supplied custom bundle used only on plugin position page; upstream authenticity not independently verified."
+    }
+  ]
+}
