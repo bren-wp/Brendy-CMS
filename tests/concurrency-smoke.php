@@ -28,10 +28,18 @@ try {
         }
         $children[]=$pid;
     }
-    foreach($children as $pid) { pcntl_waitpid($pid,$status); if (!pcntl_wifexited($status)||pcntl_wexitstatus($status)!==0) $failed=true; }
+    foreach($children as $pid) {
+        do { $waited=pcntl_waitpid($pid,$status); }
+        while ($waited===-1 && pcntl_get_last_error()===PCNTL_EINTR);
+        if ($waited!==$pid || !pcntl_wifexited($status) || pcntl_wexitstatus($status)!==0) {
+            $failed=true; fwrite(STDERR,"Child wait/exit failed for PID ".$pid."\n");
+        }
+    }
     $children=[];
     brendyTestAssert(!$failed,'One or more concurrent writers failed');
-    brendyTestAssert(Filesystem::readFileBounded($counter,16,1)==='80','Lost update under cooperative lock');
+    clearstatcache(true,$counter);
+    $actual=Filesystem::readFileBounded($counter,16,1);
+    brendyTestAssert($actual==='80','Lost update under cooperative lock: expected 80, observed '.var_export($actual,true));
     echo "[PASS] 80 cooperative locked updates, four child processes\n";
     brendyTestAssert(in_array(Filesystem::readFileBounded($path,65536,65536),$payloads,true),'Invalid final payload');
     echo "[PASS] Concurrent reader/writer snapshots preserve complete payloads\n";

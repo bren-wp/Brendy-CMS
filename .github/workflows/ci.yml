@@ -13,6 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Install PHP runtime
+        id: php_setup
         run: |
           sudo apt-get update
           sudo apt-get install -y php8.3-cli php8.3-mbstring php8.3-gd php8.3-xml php8.3-curl php8.3-zip apache2
@@ -26,21 +27,27 @@ jobs:
           php tests/run.php
           php tests/uuid-spool-smoke.php
           php tests/recovery-panel-smoke.php
-          php tests/concurrency-smoke.php
+      - name: Concurrent locked updates
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
+        run: php tests/concurrency-smoke.php
       - name: ZIP and AES-256
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
         run: php tests/zip-runtime-smoke.php
       - name: HTTP isolation
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
         run: |
           sudo python3 tests/http-fixture.py
           python3 tests/runtime-preflight.py
           python3 tests/restore-gate-http.py
           python3 tests/http-xml-snapshot.py
       - name: Crash recovery
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
         run: |
           python3 tests/atomic-write-faults.py
           python3 tests/recovery-publication-faults.py
           python3 tests/recovery-anchor-cli-smoke.py
       - name: Active ledger scale
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
         run: |
           d=$(mktemp -d)
           trap 'rm -rf "$d"' EXIT
