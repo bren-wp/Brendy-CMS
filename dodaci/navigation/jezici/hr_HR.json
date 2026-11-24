@@ -1,0 +1,11 @@
+{
+  "plugin-data": {
+    "name": "Navigacija",
+    "description": "Jedinstvena navigacija za objavljene i statične stranice s podrškom za duboke hijerarhije."
+  },
+  "home-link": "Poveznica naslovnice",
+  "show-the-home-link-on-the-sidebar": "Prikaži poveznicu naslovnice u bočnoj traci.",
+  "show-published-pages": "Prikaži objavljene stranice",
+  "show-static-pages": "Prikaži statične stranice",
+  "amount-of-published-items": "Broj objavljenih stavki"
+}

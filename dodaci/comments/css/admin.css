@@ -1,0 +1,23 @@
+/* Brendy Comments — admin styles */
+.comments-dashboard-widget h5 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+.comments-dashboard-widget p { margin: 0; font-size: .95rem; }
+.comments-dashboard-widget a { text-decoration: none; }
+.nav-tabs .badge { margin-left: .35rem; vertical-align: middle; }
+.table td form.d-inline { margin-left: .25rem; }
+.table td form.d-inline:first-child { margin-left: 0; }
+.table td small { color: var(--brendy-admin-muted, #6c757d); }
+.brendy-comments-bulk-select { width: auto; max-width: 14rem; }
+.brendy-comments-select-column { width: 2.5rem; }
+.brendy-comments-block-form { max-width: 420px; }
+.brendy-comments-block-form .form-control { flex: 1 1 14rem; min-width: 0; }
+.brendy-comments-bulk-bar { flex-wrap: wrap; }
+.brendy-comments-bulk-bar > .text-muted { white-space: nowrap; }
+.brendy-table-shell .btn-group[role="group"] { flex-wrap: wrap; gap: .2rem; justify-content: flex-end; }
+@media (max-width: 575.98px) {
+	.brendy-comments-bulk-select { width: 100%; max-width: none; }
+	.brendy-comments-bulk-bar { align-items: stretch !important; }
+	.brendy-comments-bulk-bar > :where(select, button) { flex: 1 1 100%; width: 100%; }
+	.brendy-comments-bulk-bar > .text-muted { width: 100%; margin-left: 0 !important; }
+	.brendy-comments-block-form { max-width: none; align-items: stretch; flex-direction: column; }
+	.brendy-comments-block-form .btn { width: 100%; }
+}

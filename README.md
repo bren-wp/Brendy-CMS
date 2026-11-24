@@ -1,7 +1,7 @@
 <div align="center">
   <img src="branding/brendy-banner.svg" alt="Brendy CMS — Create. Publish. Own." width="100%">
 
-# Brendy CMS 2.42.29
+# Brendy CMS 2.42.28
 
 **Your website. Your content. Your control.**
 

@@ -1,0 +1,232 @@
+{
+  "archives": {
+    "tinymce_8.10.2.zip": "aa378651120d5ac2ad286d0657b5c4373f02b6d1292cb2c01cf788e6036f9c80",
+    "bootstrap-5.3.9.zip": "ab6ad985b34456e57e800aea1d3bb65536956b4a85c599d7dc9878ea6fccac2c",
+    "bootstrap-5.3.9-dist.zip": "13f7bb777406d87cfd4f34cf285aa586db085db526e1669594d0954c4b119259",
+    "bootstrap-5.3.9-examples.zip": "31ea55ec6e765c6be3da03401080a91d2c7427133c9148f92b66dcc7bb9d8ba1",
+    "select2-4.2.0.zip": "104de798daaa0d11ce9a799437af6535c163cf3ff5c40dd74e809dd95996002a",
+    "jquery-ui-1.14.2.custom.zip": "5e0fa5b75a3b6fe232a44b7394f92581c0a935fe479bff21dc2ee0eff69f1067",
+    "parsedown-1.8.0.zip": "304c5805b4147ede3cf1ec34eec6801df2d58d3dd7000d15524ce4b9d8e36c9d",
+    "bootstrap-icons-1.13.2.zip": "37d3a6afa8156002ad14d93c3e9b5efcd2744a6982995566c8f754fc10d18832",
+    "Zalijepljeni markdown(20261124-212317).md": "37b7fed17a75f4445d60fccbd3d686a870c47dcf87d982a4ac8ff5da63690a90",
+    "3.5.0.zip": "ca18b7a2dd5301b3c91326b087d86cbf8c7222807f275c82350fa7168cabc988",
+    "prism.js": "c93727f4f27b6349715ea8e5bdcb70c96fbc9f781be84adfcb0a75e7e788d4b9",
+    "prism.css": "b5b7a503a6ef8e3c09207400fabab263d69398513bf41a08ecc06c4b14c38b3a"
+  },
+  "files": {
+    "jezgra/css/bootstrap.min.css": {
+      "archive": "bootstrap-5.3.9-dist.zip",
+      "member": "bootstrap-5.3.9-dist/css/bootstrap.min.css",
+      "sha256": "9caac977a0af0c2229abd397eee3345899c4020da2a1a0b711c1cc543fe3719d"
+    },
+    "jezgra/js/bootstrap.bundle.min.js": {
+      "archive": "bootstrap-5.3.9-dist.zip",
+      "member": "bootstrap-5.3.9-dist/js/bootstrap.bundle.min.js",
+      "sha256": "4ad2ad30a7df1fa0a615c4cfeb1aeffbe92019a8dff0262c99464acbd56dca5c"
+    },
+    "jezgra/css/bootstrap-LICENSE.txt": {
+      "archive": "bootstrap-5.3.9.zip",
+      "member": "bootstrap-5.3.9/LICENSE",
+      "sha256": "bc0cd18d94c028f1c0b62ec9fdaddcb9921c1e07c29cf52dc7df8cca9daf2488"
+    },
+    "jezgra/urednik/tinymce/icons/default/icons.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/icons/default/icons.min.js",
+      "sha256": "8b3e1a9efb34d0416541dbb8bc282ca96325ca238af14b34b9084c72ec987f37"
+    },
+    "jezgra/urednik/tinymce/license.md": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/license.md",
+      "sha256": "2fcd38ecec1bedcf12c8fc7b6d874537028ae36a03ce9d4e9a243ea8371fe7ea"
+    },
+    "jezgra/urednik/tinymce/models/dom/model.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/models/dom/model.min.js",
+      "sha256": "e54e3678771cb9ff68c042299d4e0322d70aa73d5c4ba6fcf2c46dec243cf250"
+    },
+    "jezgra/urednik/tinymce/notices.txt": {
+      "archive": "prism.js",
+      "member": "updated local vendor notices",
+      "sha256": "e0933443fa2c7da619a9aecaa0aceb11b9286f5a4179cbc0725e1bc926c6160c"
+    },
+    "jezgra/urednik/tinymce/plugins/advlist/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/advlist/plugin.min.js",
+      "sha256": "a9ae8e2035ae366f833d302f4ada8850e97b2ac6ac590746d82c3dc5f9e7b848"
+    },
+    "jezgra/urednik/tinymce/plugins/autolink/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/autolink/plugin.min.js",
+      "sha256": "e8e83eb921703b6fdc888e891b03d6edfa6226c93b2bfa2bb5a36a55bdbecffc"
+    },
+    "jezgra/urednik/tinymce/plugins/charmap/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/charmap/plugin.min.js",
+      "sha256": "dc38c3dd929ac3ba24c93711869c9f1dc288917bcc0f509c861b6c3bcdfe73cc"
+    },
+    "jezgra/urednik/tinymce/plugins/code/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/code/plugin.min.js",
+      "sha256": "13e06d6176536c9dd45ab17c68e6555c0df9f97eeb6851ce213d358b2db0c185"
+    },
+    "jezgra/urednik/tinymce/plugins/codesample/plugin.min.js": {
+      "archive": "prism.js",
+      "member": "TinyMCE plugin with local Prism 1.30.0 subset; source lines 3,4,5,6,7,21,22,28,64,76,134,135,221,232",
+      "sha256": "2c5800e7c0ece8aeb479e9153ad90b0b8206d3675bc7be00e001bb01ccf305b7"
+    },
+    "jezgra/urednik/tinymce/plugins/fullscreen/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/fullscreen/plugin.min.js",
+      "sha256": "a74a8853e7e17d0fd26030bc4ef36b76ea3c22d9cacd0238707782a4da6e8150"
+    },
+    "jezgra/urednik/tinymce/plugins/image/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/image/plugin.min.js",
+      "sha256": "a12cf75065ad01c850dcf154501eedb6daa0393d7d3a2490f7b8ffe7045d3cc4"
+    },
+    "jezgra/urednik/tinymce/plugins/link/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/link/plugin.min.js",
+      "sha256": "733f0d504ee5b1c5b664d92100a424f0cf6eb294d81cacb243b448f9fa19cb10"
+    },
+    "jezgra/urednik/tinymce/plugins/lists/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/lists/plugin.min.js",
+      "sha256": "2866866f29037b806bd5020bbe88ffbfc44f446a677473dad31fc400f8ac5e60"
+    },
+    "jezgra/urednik/tinymce/plugins/pagebreak/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/pagebreak/plugin.min.js",
+      "sha256": "010f1358d43038388ee57a4b7ab4fe5af42664116d20f6c86d806ff474268d88"
+    },
+    "jezgra/urednik/tinymce/plugins/searchreplace/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/searchreplace/plugin.min.js",
+      "sha256": "6c1978368ecfa3515fe8abf2b9272df7afd3088f151cf20cd0ab90961f08b4a7"
+    },
+    "jezgra/urednik/tinymce/plugins/table/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/table/plugin.min.js",
+      "sha256": "02bac1c6f7d6b1560aa4b8b0e11bb3a4a824c585c2afeba612a7013c1d6004e6"
+    },
+    "jezgra/urednik/tinymce/plugins/wordcount/plugin.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/plugins/wordcount/plugin.min.js",
+      "sha256": "d8aeefc349a3cf01dc5a721e25dfd86df26195c8a84e9c71f9f867b5456a2b98"
+    },
+    "jezgra/urednik/tinymce/skins/content/default/content.min.css": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/skins/content/default/content.min.css",
+      "sha256": "8fbc7f18efefe59b8b7d692d25e0c4283aa4100eaba292e1cdda0cd32e20fc88"
+    },
+    "jezgra/urednik/tinymce/skins/ui/oxide/content.inline.min.css": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/skins/ui/oxide/content.inline.min.css",
+      "sha256": "17de5083cf3b487d0eee1e9533af381d03ba6bb712f9d6643083dbe8fc869304"
+    },
+    "jezgra/urednik/tinymce/skins/ui/oxide/content.min.css": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/skins/ui/oxide/content.min.css",
+      "sha256": "eae99a867b594161b3974966772d04191abde5800111f8b69944f9ea72e9374c"
+    },
+    "jezgra/urednik/tinymce/skins/ui/oxide/skin.min.css": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/skins/ui/oxide/skin.min.css",
+      "sha256": "19077784af1fb79af825270f4dc0bad4ec2893b300b69abe16537914e81ec73c"
+    },
+    "jezgra/urednik/tinymce/skins/ui/oxide/skin.shadowdom.min.css": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/skins/ui/oxide/skin.shadowdom.min.css",
+      "sha256": "d8a9f2d384edd57a6e04e52cd58bb3f5c4a566da539b08c1eaeb7f918a42c262"
+    },
+    "jezgra/urednik/tinymce/themes/silver/theme.min.js": {
+      "archive": "tinymce_8.10.2.zip",
+      "member": "tinymce/js/tinymce/themes/silver/theme.min.js",
+      "sha256": "be2a60f489c7bf408957b9a7f96279e2f26aed3dce9e9e0ade9afd84e39b987c"
+    },
+    "jezgra/urednik/tinymce/tinymce.min.js": {
+      "source": "local derived bundle",
+      "base_sha256": "004f51f8cd9fef25bafbe06d0a32382e7916b29ae2c9ebb74c40ff15d5a825d2",
+      "dompurify_member": "DOMPurify-3.5.0/dist/purify.min.js",
+      "dompurify_sha256": "f69a46022ab1f53e969c8ebbca98172c8995785a9b3be72ea4a12d25b1a1bf67",
+      "transformation": "replace original embedded factory with isolated UMD; remove source map directive; update banner",
+      "sha256": "951551ac7df36575804c1a83ab608a4fc69b9c400670128c08d7853dccaa4fa7"
+    },
+    "jezgra/js/select2.full.min.js": {
+      "archive": "select2-4.2.0.zip",
+      "member": "select2-4.2.0/dist/js/select2.full.min.js",
+      "sha256": "22436db3e3b9f33dd94bd8fd0ed5a0ae5b5934388ed24cacfbb9d8d51509af0a"
+    },
+    "jezgra/css/select2.min.css": {
+      "archive": "select2-4.2.0.zip",
+      "member": "select2-4.2.0/dist/css/select2.min.css",
+      "sha256": "bc90534ad9dccf334329047777c8dcb681a67102f0f1300b72eae1af62acc3f9"
+    },
+    "jezgra/js/select2-license.md": {
+      "archive": "select2-4.2.0.zip",
+      "member": "select2-4.2.0/LICENSE.md",
+      "sha256": "4ee0cbc51370afde358652a0f977972053729ed578b6a42f5e2a037d114f0b39"
+    },
+    "jezgra/js/jquery-ui.min.js": {
+      "archive": "jquery-ui-1.14.2.custom.zip",
+      "member": "jquery-ui-1.14.2.custom/jquery-ui.min.js",
+      "sha256": "4bf75939da467d2ba77a448db010fa1699d31366aa1825764a379e29e6f9db07"
+    },
+    "jezgra/js/jquery-ui-license.txt": {
+      "archive": "jquery-ui-1.14.2.custom.zip",
+      "member": "jquery-ui-1.14.2.custom/LICENSE.txt",
+      "sha256": "f649025cf65c8dcd8588b0937883ba7a52bdb6d35129464a36a1602eb00250f1"
+    },
+    "jezgra/parsedown.class.php": {
+      "archive": "parsedown-1.8.0.zip",
+      "member": "parsedown-1.8.0/Parsedown.php",
+      "sha256": "34075a6f176841dbb91ca6a26ac7455b5bb576e368cfadb8249edb79d67b1a06"
+    },
+    "jezgra/parsedown-license.txt": {
+      "archive": "parsedown-1.8.0.zip",
+      "member": "parsedown-1.8.0/LICENSE.txt",
+      "sha256": "d76b34cb4a026e7d8f9e13e2c4e56e985bff8749659c90456d13bea99713a1bc"
+    },
+    "jezgra/css/bootstrap-icons/bootstrap-icons.css": {
+      "archive": "bootstrap-icons-1.13.2.zip",
+      "member": "bootstrap-icons-1.13.2/bootstrap-icons.css",
+      "sha256": "60da58893ec6f16edabdac4f79a10dd73151010407782e90236286db0ee71992"
+    },
+    "jezgra/css/bootstrap-icons/bootstrap-icons.json": {
+      "archive": "bootstrap-icons-1.13.2.zip",
+      "member": "bootstrap-icons-1.13.2/bootstrap-icons.json",
+      "sha256": "1c9de1e3aaaa1bba5967bac7eada79475082dd86b4a41955e58d3c2569b23cf0"
+    },
+    "jezgra/css/bootstrap-icons/fonts/bootstrap-icons.woff": {
+      "archive": "bootstrap-icons-1.13.2.zip",
+      "member": "bootstrap-icons-1.13.2/fonts/bootstrap-icons.woff",
+      "sha256": "24929e8a44da027588f833d4e82240ee734bd65bf962b08b0545af58a9ce80fa"
+    },
+    "jezgra/css/bootstrap-icons/fonts/bootstrap-icons.woff2": {
+      "archive": "bootstrap-icons-1.13.2.zip",
+      "member": "bootstrap-icons-1.13.2/fonts/bootstrap-icons.woff2",
+      "sha256": "2b7689746f87e0beeae25338bc021dd2515c2f6f003f3d3d064d878d380b2150"
+    },
+    "jezgra/js/jquery.min.js": {
+      "source": "Zalijepljeni markdown(20261124-212317).md",
+      "transformation": "remove Markdown fence and surrounding line breaks",
+      "sha256": "86346f3e414b3b52466453171abcdda46e9396c1c3ca3a783d07aa2d645c3339"
+    },
+    "jezgra/urednik/tinymce/DOMPurify-LICENSE.txt": {
+      "archive": "3.5.0.zip",
+      "member": "DOMPurify-3.5.0/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "jezgra/urednik/tinymce/DOMPurify-LICENSE-MPL.txt": {
+      "archive": "3.5.0.zip",
+      "member": "DOMPurify-3.5.0/LICENSE-MPL",
+      "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
+    },
+    "jezgra/urednik/tinymce/Prism-LICENSE.txt": {
+      "archive": "prism.js",
+      "member": "MIT license from upstream v1.30.0",
+      "sha256": "138590e517c880d3f53b90674a449f9c36097a6cd43381403eeb15ddf5c94a7a"
+    }
+  },
+  "notes": "Local user-supplied archive byte comparison only, not independent upstream authentication. Existing Croatian language pack retained. No new plugins or examples deployed."
+}

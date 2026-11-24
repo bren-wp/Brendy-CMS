@@ -1,0 +1,13 @@
+{
+  "author": "Brendigo",
+  "email": "",
+  "website": "https://brendigo.com",
+  "icon": "images",
+  "category": "content",
+  "version": "1.9.3",
+  "releaseDate": "2026-11-24",
+  "brendyRelease": "2.42.28",
+  "license": "Brendy CMS Commercial",
+  "compatible": "2.0",
+  "notes": "Brendy CMS 2.42.2: Zaštita od opasnih naziva i preskakanje nedostupnih slika."
+}

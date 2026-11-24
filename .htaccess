@@ -1,0 +1,83 @@
+AddDefaultCharset UTF-8
+
+<IfModule mod_autoindex.c>
+Options -Indexes
+</IfModule>
+
+<IfModule mod_negotiation.c>
+Options -MultiViews
+</IfModule>
+
+<IfModule mod_headers.c>
+Header always unset X-Powered-By
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set X-Permitted-Cross-Domain-Policies "none"
+Header always set X-Download-Options "noopen"
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()"
+</IfModule>
+
+<FilesMatch "(?i)(^\.|(?:^|/)(?:php\.ini|web\.config)$|composer\.(json|lock)$|package(-lock)?\.json$|(?:SECURITY|UPGRADE|SIGURNOST|NADOGRADNJA|PROMJENE|STRUKTURA|CONTRIBUTING|DEPLOYMENT|README|API|RAZVOJ-TEMA-I-DODATAKA|AUDIT)\.md$|BRENDY_BUILD\.txt$|DEPENDENCIES\.json$|SHA256SUMS\.txt$)">
+<IfModule mod_authz_core.c>
+Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+Order allow,deny
+Deny from all
+</IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+
+# Enable rewrite rules
+RewriteEngine on
+
+# TRACE/TRACK/CONNECT have no application use and can expose/request tunnel data on legacy stacks.
+RewriteCond %{REQUEST_METHOD} ^(?:TRACE|TRACK|CONNECT)$ [NC]
+RewriteRule ^ - [R=405,L]
+
+# Relativni front-controller radi i u rootu i u podmapi; installer nakon
+# instalacije zapisuje eksplicitni RewriteBase za stvarnu lokaciju.
+
+# Hide dot-paths such as .git/.env while preserving ACME and other standard .well-known endpoints.
+RewriteRule (^|/)\.(?!well-known(?:/|$)) - [R=404,L,NC]
+
+# Deny direct access to private Brendy data.
+RewriteRule ^(?:sadrzaj|brendy-content)(?:$|/(?!uploads(?:/|$))) - [R=404,L,NC]
+
+# Content and backup restores must never be able to make an uploaded executable
+# reachable through the web server, even if a future extension accepts it.
+RewriteRule ^(?:sadrzaj|brendy-content)/.*\.(?:php[0-9]*|pht|phtml|phar|phps|inc|module|install|cgi|fcgi|pl|py|sh|shtml|svgz?|html?)(?:\.|/|$) - [R=404,L,NC]
+
+# PHP files in internal code directories are loaded through the front
+# controller and must not be invoked directly.
+RewriteRule ^(?:jezgra|dodaci|teme)/.*\.(?:php[0-9]*|pht|phtml|phar|inc|module|install)(?:\.|/|$) - [R=404,L,NC]
+
+# Only the two public PHP entrypoints may execute over HTTP.
+RewriteRule ^(?!(?:index|install)\.php$).*\.(?:php[0-9]*|pht|phtml|phar|phps|inc|module|install|cgi|fcgi|pl|py|sh)(?:\.|/|$) - [R=404,L,NC]
+
+# Developer tests are CLI-only and must never be reachable over HTTP.
+RewriteRule ^tests(?:/|$) - [R=404,L,NC]
+
+# All URL process by index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [PT,L]
+
+</IfModule>
+
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType text/css "access plus 1 day"
+ExpiresByType application/javascript "access plus 1 day"
+ExpiresByType image/png "access plus 1 day"
+ExpiresByType image/jpeg "access plus 1 day"
+ExpiresByType image/webp "access plus 1 day"
+ExpiresByType image/svg+xml "access plus 1 day"
+ExpiresByType font/woff2 "access plus 1 day"
+</IfModule>
+
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json application/xml image/svg+xml
+</IfModule>

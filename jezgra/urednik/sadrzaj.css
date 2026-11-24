@@ -1,0 +1,54 @@
+body.mce-content-body {
+	padding: 10px 5% !important;
+	font-size: 16px;
+}
+
+.mce-content-body img {
+	max-width: 100%;
+	height: auto;
+}
+
+.mce-content-body .mce-pagebreak {
+	height: 5px !important;
+}
+
+.mce-content-body a {
+	color: #4a90e2;
+	text-decoration: none;
+}
+
+.mce-content-body p,
+.mce-content-body div,
+.mce-content-body h1,
+.mce-content-body h2,
+.mce-content-body h3,
+.mce-content-body h4,
+.mce-content-body h5,
+.mce-content-body h6,
+.mce-content-body ul {
+	line-height: 1.5em;
+}
+
+.mce-content-body blockquote {
+	padding: 10px 20px;
+	margin: 0 0 20px 20px;
+	border-left: 5px solid #eee;
+	font-style: italic;
+}
+
+
+/* Brendy Editor 1.2 content helpers */
+.lead { font-size: 1.2em; line-height: 1.65; }
+.brendy-content-callout { margin: 1.5rem 0; padding: 1rem 1.15rem; border-left: 4px solid #2563eb; background: #f8fafc; border-radius: .5rem; }
+.brendy-content-button { display: inline-block; padding: .6rem 1rem; border-radius: .55rem; background: #2563eb; color: #fff !important; text-decoration: none !important; }
+figure.brendy-editor-image { margin: 1.5rem 0; }
+figure.brendy-editor-image img { display: block; max-width: 100%; height: auto; border-radius: .5rem; }
+
+.mce-content-body :where(video, iframe, object, embed, table, pre) { max-width: 100%; }
+.mce-content-body pre { overflow-x: auto; }
+.mce-content-body table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.mce-content-body td, .mce-content-body th { overflow-wrap: anywhere; }
+@media (max-width: 575.98px) {
+	body.mce-content-body { padding-inline: 16px !important; }
+	.mce-content-body blockquote { margin-left: 0; }
+}

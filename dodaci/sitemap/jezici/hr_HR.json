@@ -1,0 +1,11 @@
+{
+  "plugin-data": {
+    "name": "Karta web-stranice",
+    "description": "Generira sitemap.xml s popisom javnih stranica kako bi tražilice lakše pronašle i obradile sadržaj."
+  },
+  "sitemap-url": "URL karte web-stranice",
+  "notifies-google-when-you-created": "Obavještava Google nakon izrade, izmjene ili brisanja sadržaja.",
+  "notifies-bing-when-you-created": "Obavještava Bing nakon izrade, izmjene ili brisanja sadržaja.",
+  "ping-google": "Obavijesti Google",
+  "ping-bing": "Obavijesti Bing"
+}

@@ -1,0 +1,11 @@
+{
+  "plugin-data": {
+    "name": "API",
+    "description": "Sigurno HTTP sučelje za povezivanje vanjskih aplikacija sa sustavom Brendy CMS."
+  },
+  "api-token": "API token",
+  "amount-of-pages": "Broj stranica",
+  "this-is-the-maximum-of-pages-to-return-when-you-call-to": "Najveći broj stranica koji vraća poziv /api/pages.",
+  "this-token-is-for-read-only-and-is-regenerated-every-time-you-install-the-plugin": "Ovaj token služi samo za čitanje i ponovno se generira pri svakoj instalaciji dodatka.",
+  "api-credentials-are-generated-from-the-api-access-screen-and-are-not-stored-in-readable-form": "API vjerodajnice generiraju se na zaslonu API pristupa i u CMS-u se pohranjuju samo kao kriptografski sažeci, ne u čitljivom obliku."
+}

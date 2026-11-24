@@ -1,0 +1,69 @@
+/* Gallery plugin admin styles — inherit the active Brendy admin palette. */
+
+.gallery-upload-area .gallery-upload-inner {
+	border: 2px dashed var(--brendy-admin-border, #cbd5e1);
+	background: var(--brendy-admin-surface-2, #f8fafc);
+	color: var(--brendy-admin-text, #172033);
+	cursor: pointer;
+	transition: border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+
+.gallery-upload-area .gallery-upload-inner:hover,
+.gallery-upload-area .gallery-upload-inner:focus-within,
+.gallery-upload-area .gallery-upload-inner.dragover {
+	border-color: var(--brendy-admin-accent, #2563eb);
+	background: color-mix(in srgb, var(--brendy-admin-accent, #2563eb) 8%, var(--brendy-admin-surface, #fff));
+}
+
+.gallery-admin-card .card-img-top,
+#jsGalleryImageGrid .card-img-top {
+	height: 150px;
+	object-fit: cover;
+	background: var(--brendy-admin-surface-2, #f8fafc);
+}
+
+#jsGallerySelectBody .gallery-select-item {
+	cursor: pointer;
+	border: 2px solid transparent;
+	border-radius: .55rem;
+	padding: 10px;
+	margin-bottom: 10px;
+	color: var(--brendy-admin-text, #172033);
+	transition: border-color .2s ease, background-color .2s ease;
+}
+
+#jsGallerySelectBody .gallery-select-item:hover,
+#jsGallerySelectBody .gallery-select-item:focus-within {
+	border-color: var(--brendy-admin-accent, #2563eb);
+	background: var(--brendy-admin-surface-2, #f8fafc);
+}
+
+#jsGallerySelectBody .gallery-thumb-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+	margin-top: 8px;
+}
+
+#jsGallerySelectBody .gallery-thumb-grid img {
+	width: 60px;
+	height: 60px;
+	object-fit: cover;
+	border-radius: .35rem;
+	background: var(--brendy-admin-surface-2, #f8fafc);
+}
+
+/* Brendy Gallery 1.9 — responsive administration. */
+.gallery-upload-area .progress-bar { width: 0; }
+#jsGalleryImageGrid > [class*="col-"] { min-width: 0; }
+#jsGalleryImageGrid .card { height: 100%; }
+.gallery-select-header, .gallery-select-details { min-width: 0; }
+.gallery-select-details strong { overflow-wrap: anywhere; }
+@media (max-width: 575.98px) {
+	.gallery-upload-area .gallery-upload-inner { padding: 1rem !important; }
+	#jsGalleryImageGrid > .col-6 { flex: 0 0 100%; max-width: 100%; }
+	#jsGalleryImageGrid .card-img-top { height: min(52vw, 210px); }
+	.gallery-select-header { align-items: stretch !important; flex-direction: column; gap: .65rem; }
+	.gallery-select-header .btn { width: 100%; }
+	#jsGallerySelectBody .gallery-thumb-grid img { width: 52px; height: 52px; }
+}

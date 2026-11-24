@@ -1,0 +1,7 @@
+{
+  "plugin-data": {
+    "name": "Kategorije",
+    "description": "Prikazuje kategorije u bočnoj traci."
+  },
+  "hide-categories-without-content": "Sakrij kategorije bez sadržaja"
+}

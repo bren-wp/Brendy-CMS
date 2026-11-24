@@ -1,0 +1,13 @@
+{
+  "author": "Brendigo",
+  "email": "",
+  "website": "https://brendigo.com",
+  "version": "2.3.0",
+  "releaseDate": "2026-11-24",
+  "brendyRelease": "2.42.28",
+  "license": "MIT",
+  "compatible": "2.0",
+  "notes": "Brendy CMS 2.42.2: kompatibilnost Extension API 2.0; sigurnosna i održavateljska revizija.",
+  "icon": "journal-richtext",
+  "category": "theme"
+}

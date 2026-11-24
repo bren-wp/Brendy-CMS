@@ -1,0 +1,6 @@
+/* Transitional structural helpers; Bootstrap 5 does not define these. */
+.form-group{margin-bottom:1rem}.form-group>label{margin-bottom:.5rem}
+.form-row{display:flex;flex-wrap:wrap;margin-inline:-5px}.form-row>[class*=col]{padding-inline:5px}
+.form-inline{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+.btn-block{display:block;width:100%}.btn-block+.btn-block{margin-top:.5rem}
+.close{float:right;font-size:1.5rem;font-weight:700;line-height:1;background:transparent;border:0;color:inherit}

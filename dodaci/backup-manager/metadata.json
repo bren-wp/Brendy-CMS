@@ -1,0 +1,13 @@
+{
+  "author": "Brendigo",
+  "email": "",
+  "website": "https://brendigo.com",
+  "icon": "archive",
+  "category": "system",
+  "version": "1.13.10",
+  "releaseDate": "2026-11-24",
+  "brendyRelease": "2.42.28",
+  "license": "Brendy CMS Commercial",
+  "compatible": "2.0",
+  "notes": "Brendy CMS 2.42.2: Uklonjene suvišne dodjele argumenata pri popisu kopija."
+}
