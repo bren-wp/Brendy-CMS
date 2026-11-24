@@ -171,11 +171,13 @@ final class RecoveryLedger
     // shards, never to arbitrary paths. Keep them after deletion for audit.
     private function retirement()
     {
-        if (RestoreJournal::identity($this->path(self::RETIREMENT))===null) return ['schema'=>1,'digests'=>[]];
+        if (RestoreJournal::identity($this->path(self::RETIREMENT))===null) return ['schema'=>1,'digests'=>[],'pages'=>[]];
         $raw=$this->privateRead(self::RETIREMENT,self::LIMIT);
         $value=is_string($raw)?$this->open($raw,'shard-retirement-v1'):false;
         if (!is_array($value) || ($value['schema']??null)!==1 || !is_array($value['digests']??null) || count($value['digests'])>50000) return false;
-        foreach ($value['digests'] as $digest=>$time) if (!is_string($digest) || !preg_match('/^[a-f0-9]{64}$/D',$digest) || !is_int($time) || $time<=0) return false;
+        if (!array_key_exists('pages',$value)) $value['pages']=[];
+        if (!is_array($value['pages']) || count($value['pages'])>50000) return false;
+        foreach (['digests','pages'] as $type) foreach ($value[$type] as $digest=>$time) if (!is_string($digest) || !preg_match('/^[a-f0-9]{64}$/D',$digest) || !is_int($time) || $time<=0) return false;
         return $value;
     }
     private function recordRetirement(): bool
@@ -187,29 +189,60 @@ final class RecoveryLedger
             foreach (new FilesystemIterator($this->tmp,FilesystemIterator::SKIP_DOTS) as $entry) {
                 if (++$count>10000) return false;
                 $name=$entry->getFilename();
-                if (!preg_match('/^restore-ledger-shard-(?:copy-)?([a-f0-9]{64})\.json$/D',$name,$m) || isset($proof['digests'][$m[1]])) continue;
-                $raw=$this->privateRead($name,self::SHARD_LIMIT);
-                if (!is_string($raw) || !hash_equals($m[1],hash('sha256',$raw))) continue;
+                if (!preg_match('/^restore-ledger-(shard|page)-(?:copy-)?([a-f0-9]{64})\.json$/D',$name,$m)) continue;
+                $page=$m[1]==='page'; $type=$page?'pages':'digests'; $digest=$m[2];
+                if (isset($proof[$type][$digest])) continue;
+                $raw=$this->privateRead($name,$page?16384:self::SHARD_LIMIT);
+                if (!is_string($raw) || !hash_equals($digest,hash('sha256',$raw))) continue;
+                if ($page) {
+                    if (!self::validRetiredPage(self::openWithKey($raw,'ledger-page-v3',$old))) continue;
+                    if (count($proof['pages'])>=50000) return false;
+                    $proof['pages'][$digest]=time();
+                    continue;
+                }
                 $shard=self::openWithKey($raw,'ledger-shard-v2',$old);
                 if (!is_array($shard) || ($shard['schema']??null)!==1 || !is_int($shard['start']??null) || $shard['start']<1 ||
                     !is_array($shard['entries']??null) || !array_is_list($shard['entries']) || count($shard['entries'])!==self::SHARD_SIZE) continue;
                 foreach ($shard['entries'] as $i=>$r) if (!self::validReceipt($r,$shard['start']+$i)) continue 2;
                 if (count($proof['digests'])>=50000) return false;
-                $proof['digests'][$m[1]]=time();
+                $proof['digests'][$digest]=time();
             }
         } catch (Throwable $e) { return false; }
         $sealed=$this->seal($proof,'shard-retirement-v1');
         return is_string($sealed) && strlen($sealed)<=self::LIMIT && Filesystem::atomicWrite($this->path(self::RETIREMENT),$sealed,0600);
     }
+    private static function validRetiredPage($value): bool
+    {
+        if (!is_array($value) || array_keys($value)!==['schema','start','shards'] || $value['schema']!==1 ||
+            !is_int($value['start']) || $value['start']<0 || $value['start']%self::INDEX_PAGE_SIZE!==0 ||
+            $value['start']>=intdiv(self::MAX_HISTORY,self::SHARD_SIZE) ||
+            !is_array($value['shards']) || !array_is_list($value['shards']) || !$value['shards'] ||
+            count($value['shards'])>self::INDEX_PAGE_SIZE ||
+            $value['start']+count($value['shards'])>intdiv(self::MAX_HISTORY,self::SHARD_SIZE)) return false;
+        foreach ($value['shards'] as $d) if (!is_string($d) || !preg_match('/^[a-f0-9]{64}$/D',$d)) return false;
+        return true;
+    }
     public function retirementCount()
     {
         $proof=$this->retirement(); return $proof===false?false:count($proof['digests']);
+    }
+    public function pageRetirementCount()
+    {
+        $proof=$this->retirement(); return $proof===false?false:count($proof['pages']);
     }
 
     // Caller holds exclusive recovery gate; only exact unreferenced, aged,
     // authenticated shards or exact retirement-certified bytes are candidates.
     // Never touch unproven files, a divergent mirror, or active recovery state.
     public function orphanShards(bool $remove=false)
+    {
+        return $this->orphanObjects(false,$remove);
+    }
+    public function orphanPages(bool $remove=false)
+    {
+        return $this->orphanObjects(true,$remove);
+    }
+    private function orphanObjects(bool $page,bool $remove)
     {
         $state=$this->query();
         if ($state===false || $state['active']!==null || $this->keyStatus()!=='active' ||
@@ -222,19 +255,25 @@ final class RecoveryLedger
             $indexes[$name]=hash('sha256',$raw);
             $keys=$this->keys(); $index=$keys===false?false:$this->decodeIndex($raw,$keys);
             if ($index===false) return false;
-            foreach ($index['shards'] as $digest) $refs[$digest]=true;
+            if ($page) {
+                $v3=self::openWithKeys($raw,'ledger-index-v3',$keys);
+                if ($v3!==false) foreach ($v3['pages'] as $digest) $refs[$digest]=true;
+            } else foreach ($index['shards'] as $digest) $refs[$digest]=true;
         }
         $proof=$this->retirement(); if ($proof===false) return false;
+        $kind=$page?'page':'shard'; $type=$page?'pages':'digests'; $limit=$page?16384:self::SHARD_LIMIT;
         $candidates=[]; $count=0;
         try {
             foreach (new FilesystemIterator($this->tmp,FilesystemIterator::SKIP_DOTS) as $entry) {
                 if (++$count>10000) return false;
                 $name=$entry->getFilename();
-                if (!preg_match('/^restore-ledger-shard-(?:copy-)?([a-f0-9]{64})\.json$/D',$name,$m) || isset($refs[$m[1]])) continue;
+                if (!preg_match('/^restore-ledger-'.$kind.'-(?:copy-)?([a-f0-9]{64})\.json$/D',$name,$m) || isset($refs[$m[1]])) continue;
                 $path=$this->path($name); $id=RestoreJournal::identity($path); $mtime=@filemtime($path);
                 if (!is_array($id) || $id[2]!==0100000 || !is_int($mtime) || $mtime>time()-86400) continue;
-                $raw=$this->privateRead($name,self::SHARD_LIMIT);
-                if (!is_string($raw) || hash('sha256',$raw)!==$m[1] || ($this->open($raw,'ledger-shard-v2')===false && !isset($proof['digests'][$m[1]]))) continue;
+                $raw=$this->privateRead($name,$limit);
+                if (!is_string($raw) || hash('sha256',$raw)!==$m[1]) continue;
+                $value=$this->open($raw,$page?'ledger-page-v3':'ledger-shard-v2');
+                if (($page?!self::validRetiredPage($value):$value===false) && !isset($proof[$type][$m[1]])) continue;
                 $candidates[$name]=[$id,$m[1],strlen($raw),$mtime];
             }
         } catch (Throwable $e) { return false; }
@@ -246,7 +285,7 @@ final class RecoveryLedger
                 $raw=$this->privateRead($indexName,self::LIMIT);
                 if (!is_string($raw) || hash('sha256',$raw)!==$expected) return false;
             }
-            $path=$this->path($name); $raw=$this->privateRead($name,self::SHARD_LIMIT);
+            $path=$this->path($name); $raw=$this->privateRead($name,$limit);
             if (!is_string($raw) || strlen($raw)!==$size || hash('sha256',$raw)!==$hash || RestoreJournal::identity($path)!==$id || @filemtime($path)!==$mtime || !@unlink($path)) return false;
             $removed[]=$name;
         }
