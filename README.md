@@ -33,4 +33,8 @@ Brendy CMS brings pages, articles, media, navigation and editorial workflows tog
 
 Brendy CMS uses file-based content storage, with no separate SQL database required. Host it on a compatible PHP server and manage your website in one place.
 
+<div align="center">
+<img src="branding/logo.svg" alt="Brendy" width="64">
+</div>
+
 © 2026 Brendigo LTD. All rights reserved for proprietary components. Third-party components remain subject to their own licenses.
