@@ -46,6 +46,9 @@ jobs:
           python3 tests/atomic-write-faults.py
           python3 tests/recovery-publication-faults.py
           python3 tests/recovery-anchor-cli-smoke.py
+      - name: Million UUID exact uniqueness
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
+        run: php -d memory_limit=32M tests/uuid-million-smoke.php
       - name: Active ledger scale
         if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
         run: |

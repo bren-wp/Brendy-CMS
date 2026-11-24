@@ -32,7 +32,7 @@ final class RecoveryLedger
         try {
             $count=0;
             foreach (new FilesystemIterator($this->tmp,FilesystemIterator::SKIP_DOTS) as $entry) {
-                if (++$count>10000 || preg_match('/^restore-(?:ledger-(?:shard|page)-(?:copy-)?[a-f0-9]{64}|ledger-lookup-bucket-[a-f0-9]{2}|gc-[a-f0-9]{32}(?:-cursor)?)\.json$/D',$entry->getFilename())) return true;
+                if (++$count>10000 || preg_match('/^restore-(?:ledger-(?:shard|page)-(?:copy-)?[a-f0-9]{64}|ledger-lookup-bucket-[a-f0-9]{2,8}|gc-[a-f0-9]{32}(?:-cursor)?)\.json$/D',$entry->getFilename())) return true;
             }
         } catch (Throwable $e) { return true; }
         return false;
@@ -393,9 +393,32 @@ final class RecoveryLedger
     // Callers hold the restore gate; rebuild requires exclusive access.
     private static function lookupBucket(string $id): string { return substr(hash('sha256',$id),0,2); }
     private function bucketName(string $bucket): string { return 'restore-ledger-lookup-bucket-'.$bucket.'.json'; }
+    // Derived prefix trie: bounded leaves and authenticated child digests.
+    // Fixed prefix names avoid unbounded immutable cache artifacts. Interrupted
+    // publication can invalidate a cache, never the authoritative ledger.
+    private const LOOKUP_LEAF_LIMIT=128;
+    private const LOOKUP_BUCKET_LIMIT=32768;
+    private const LOOKUP_PREFIX_LIMIT=8;
     private function writeBucket(string $bucket,array $ids)
     {
-        $raw=$this->seal(['schema'=>1,'bucket'=>$bucket,'ids'=>$ids],'ledger-lookup-bucket-v1');
+        if (!preg_match('/^[a-f0-9]{2,8}$/D',$bucket) || count($ids)>self::LOOKUP_BUCKET_LIMIT) return false;
+        if (count($ids)>self::LOOKUP_LEAF_LIMIT) {
+            if (strlen($bucket)>=self::LOOKUP_PREFIX_LIMIT) return false;
+            $groups=[];
+            foreach ($ids as $id=>$seq) {
+                $prefix=substr(hash('sha256',$id),0,strlen($bucket)+1);
+                $groups[$prefix][$id]=$seq;
+            }
+            $children=[];
+            foreach ($groups as $prefix=>$group) {
+                $digest=$this->writeBucket((string)$prefix,$group);
+                if ($digest===false) return false;
+                $children[(string)$prefix]=$digest;
+            }
+            ksort($children,SORT_STRING);
+            $value=['schema'=>2,'bucket'=>$bucket,'children'=>$children];
+        } else $value=['schema'=>1,'bucket'=>$bucket,'ids'=>$ids];
+        $raw=$this->seal($value,'ledger-lookup-bucket-v1');
         if (!is_string($raw) || strlen($raw)>self::LIMIT) return false;
         $name=$this->bucketName($bucket);
         if ($this->privateRead($name,self::LIMIT)!==$raw && !Filesystem::atomicWrite($this->path($name),$raw,0600)) return false;
@@ -426,7 +449,7 @@ final class RecoveryLedger
                 if (!rewind($f)) return false;
                 $ids=[];
                 while (($line=fgets($f,64))!==false) {
-                    if (!preg_match('/^([a-f0-9]{32}) ([1-9][0-9]*)\n$/D',$line,$m) || isset($ids[$m[1]])) return false;
+                    if (!preg_match('/^([a-f0-9]{32}) ([1-9][0-9]*)\n$/D',$line,$m) || isset($ids[$m[1]]) || count($ids)>=self::LOOKUP_BUCKET_LIMIT) return false;
                     $ids[$m[1]]=(int)$m[2];
                 }
                 if (!feof($f)) return false;
@@ -445,14 +468,57 @@ final class RecoveryLedger
         foreach ($map['buckets'] as $bucket=>$digest) if (!preg_match('/^[a-f0-9]{2}$/D',(string)$bucket) || !is_string($digest) || !preg_match('/^[a-f0-9]{64}$/D',$digest)) return false;
         return $map['buckets'];
     }
+    private function readLookupNode(string $prefix,string $digest,array $keys)
+    {
+        if (!preg_match('/^[a-f0-9]{2,8}$/D',$prefix)) return false;
+        $raw=$this->privateRead($this->bucketName($prefix),self::LIMIT);
+        if (!is_string($raw) || !hash_equals($digest,hash('sha256',$raw))) return false;
+        $value=self::openWithKeys($raw,'ledger-lookup-bucket-v1',$keys);
+        if (!is_array($value) || ($value['bucket']??null)!==$prefix) return false;
+        if (($value['schema']??null)===1) {
+            // Legacy root buckets can exceed the new leaf threshold.
+            $ids=$value['ids']??null;
+            if (!is_array($ids) || count($ids)>(strlen($prefix)===2?self::LOOKUP_BUCKET_LIMIT:self::LOOKUP_LEAF_LIMIT)) return false;
+            foreach ($ids as $id=>$seq) if (!is_string($id) || !preg_match('/^[a-f0-9]{32}$/D',$id) || !str_starts_with(hash('sha256',$id),$prefix) || !is_int($seq) || $seq<1 || $seq>self::MAX_HISTORY) return false;
+        } elseif (($value['schema']??null)===2) {
+            $children=$value['children']??null;
+            if (strlen($prefix)>=self::LOOKUP_PREFIX_LIMIT || !is_array($children) || !$children || count($children)>16) return false;
+            foreach ($children as $child=>$hash) if (strlen((string)$child)!==strlen($prefix)+1 || !str_starts_with((string)$child,$prefix) || !preg_match('/^[a-f0-9]+$/D',(string)$child) || !is_string($hash) || !preg_match('/^[a-f0-9]{64}$/D',$hash)) return false;
+        } else return false;
+        return $value;
+    }
+    // Mutation verifies the affected top-level bucket; reads descend only the
+    // selected authenticated path. Both paths remain optional accelerators.
+    private function collectLookupNode(string $prefix,string $digest,array $keys,array &$ids): bool
+    {
+        $node=$this->readLookupNode($prefix,$digest,$keys);
+        if ($node===false) return false;
+        if ($node['schema']===1) {
+            foreach ($node['ids'] as $id=>$seq) {
+                if (isset($ids[$id]) || count($ids)>=self::LOOKUP_BUCKET_LIMIT) return false;
+                $ids[$id]=$seq;
+            }
+        } else foreach ($node['children'] as $child=>$hash) if (!$this->collectLookupNode((string)$child,$hash,$keys,$ids)) return false;
+        return true;
+    }
     private function readBucket(string $bucket,array $buckets,array $keys)
     {
         if (!isset($buckets[$bucket])) return [];
-        $raw=$this->privateRead($this->bucketName($bucket),self::LIMIT);
-        if (!is_string($raw) || !hash_equals($buckets[$bucket],hash('sha256',$raw))) return false;
-        $value=self::openWithKeys($raw,'ledger-lookup-bucket-v1',$keys);
-        if (!is_array($value) || ($value['schema']??null)!==1 || ($value['bucket']??null)!==$bucket || !is_array($value['ids']??null)) return false;
-        return $value['ids'];
+        $ids=[];
+        return $this->collectLookupNode($bucket,$buckets[$bucket],$keys,$ids)?$ids:false;
+    }
+    private function lookupSequence(string $id,array $buckets,array $keys)
+    {
+        $hash=hash('sha256',$id); $prefix=substr($hash,0,2);
+        $digest=$buckets[$prefix]??null;
+        while ($digest!==null) {
+            $node=$this->readLookupNode($prefix,$digest,$keys);
+            if ($node===false) return false;
+            if ($node['schema']===1) return $node['ids'][$id]??null;
+            $prefix=substr($hash,0,strlen($prefix)+1);
+            $digest=$node['children'][$prefix]??null;
+        }
+        return null;
     }
     private function updateLookup(string $old,string $new,array $keys,int $count,?array $receipt): void
     {
@@ -475,9 +541,8 @@ final class RecoveryLedger
         if (is_string($raw) && $keys!==false && $this->keyStatus()==='active' && $this->loadCheckpoint()===null) {
             $index=$this->decodeIndex($raw,$keys);
             $buckets=$index===false?false:$this->lookupManifest(hash('sha256',$raw),$keys,$index['records']);
-            $map=$buckets===false?false:$this->readBucket(self::lookupBucket($id),$buckets,$keys);
-            if ($index!==false && $map!==false) {
-                $seq=$map[$id]??null;
+            $seq=$buckets===false?false:$this->lookupSequence($id,$buckets,$keys);
+            if ($index!==false && $seq!==false) {
                 if (is_int($seq) && $seq>=1 && $seq<=$index['records']) {
                     $i=intdiv($seq-1,self::SHARD_SIZE); $offset=($seq-1)%self::SHARD_SIZE;
                     if (!$index['shards']) { $entries=$index['tail']; $offset=$seq-1; }
