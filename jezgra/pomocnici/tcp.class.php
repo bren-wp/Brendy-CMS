@@ -187,10 +187,32 @@ class TCP {
 	private static function isPublicAddress($address)
 	{
 		if (!is_string($address) || !filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE)) return false;
-		if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) return true;
 		$binary = @inet_pton($address);
-		// Restrict IPv6 to the currently allocated global-unicast range 2000::/3.
-		return is_string($binary) && strlen($binary) === 16 && (ord($binary[0]) & 0xe0) === 0x20;
+		if (!is_string($binary)) return false;
+		if (strlen($binary) === 4) {
+			// Explicit special-purpose blocks, independent of PHP filter table versions.
+			foreach (['0.0.0.0/8','10.0.0.0/8','100.64.0.0/10','127.0.0.0/8','169.254.0.0/16','172.16.0.0/12','192.0.0.0/24','192.0.2.0/24','192.88.99.0/24','192.168.0.0/16','198.18.0.0/15','198.51.100.0/24','203.0.113.0/24','224.0.0.0/3'] as $cidr) {
+				if (self::inNetwork($binary,$cidr)) return false;
+			}
+			return true;
+		}
+		if (strlen($binary)!==16 || (ord($binary[0]) & 0xe0)!==0x20) return false;
+		// Conservative policy: refuse 6to4, Teredo/protocol assignments and
+		// documentation ranges even when FILTER_FLAG_GLOBAL_RANGE permits them.
+		foreach (['2001::/23','2001:db8::/32','2002::/16','3fff::/20'] as $cidr) {
+			if (self::inNetwork($binary,$cidr)) return false;
+		}
+		return true;
+	}
+
+	private static function inNetwork(string $binary,string $cidr): bool
+	{
+		[$network,$bits]=explode('/',$cidr,2);
+		$prefix=inet_pton($network); $bits=(int)$bits;
+		if ($prefix===false || strlen($prefix)!==strlen($binary)) return false;
+		$bytes=intdiv($bits,8); $remainder=$bits%8;
+		if (substr($prefix,0,$bytes)!==substr($binary,0,$bytes)) return false;
+		return $remainder===0 || ((ord($prefix[$bytes]) ^ ord($binary[$bytes])) & (0xff << (8-$remainder)))===0;
 	}
 
 	private static function isDnsHostname($host)

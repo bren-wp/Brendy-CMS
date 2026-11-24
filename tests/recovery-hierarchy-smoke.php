@@ -75,6 +75,8 @@ return [
     try {
         $pair=sodium_crypto_sign_keypair(); $key=bin2hex(sodium_crypto_sign_secretkey($pair)); $pub=bin2hex(sodium_crypto_sign_publickey($pair));
         $p=['installation'=>str_repeat('a',64),'history'=>streamingTestHistory(2)]; $raw=RecoveryLedger::signAnchor($p,null,$key); $cp=RecoveryLedger::verifyAnchor($raw,$pub); $now=1700000000;
+        brendyTestAssert(RecoveryNonceStore::issue($dir,$pub,$cp,$now)===false,'unprovisioned store accepted');
+        brendyTestAssert(RecoveryNonceStore::initialize($dir) && !RecoveryNonceStore::initialize($dir),'key initialization');
         $nonce=RecoveryNonceStore::issue($dir,$pub,$cp,$now); brendyTestAssert(is_string($nonce),'issue');
         $response=RecoveryAnchorFreshness::respond($raw,$nonce,$key,$now);
         brendyTestAssert(RecoveryNonceStore::consume($dir,$nonce,$response,$now+1)===$cp,'consume');

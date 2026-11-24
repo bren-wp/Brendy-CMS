@@ -3,6 +3,11 @@ if (PHP_SAPI!=='cli') { http_response_code(404); exit; }
 require __DIR__.'/bootstrap.php'; require __DIR__.'/recovery-nonce-store.class.php';
 $mode=$argv[1]??'';
 if ($mode==='challenge' && $argc===2) { echo bin2hex(random_bytes(32))."\n"; exit(0); }
+if ($mode==='initialize' && $argc===3) exit(RecoveryNonceStore::initialize($argv[2])?0:4);
+if ($mode==='prune' && $argc===3) {
+    $count=RecoveryNonceStore::prune($argv[2],time());
+    if ($count===false) exit(4); echo $count."\n"; exit(0);
+}
 if ($mode==='issue' && $argc===5) {
     [$script,$mode,$dir,$public,$expectedPath]=$argv;
     // The expected checkpoint is the verifier's independently pinned exact head.
@@ -29,4 +34,4 @@ if ($mode==='verify' && ($argc===6 || $argc===7)) {
     $raw=stream_get_contents(STDIN,4097); $cp=is_string($raw)?RecoveryAnchorFreshness::verify($raw,$public,$nonce,$installation,(int)$seq,time(),60,$argv[6]??null):false;
     if ($cp===false) exit(4); echo RecoveryLedger::encode($cp)."\n"; exit(0);
 }
-fwrite(STDERR,"Usage: challenge | issue /private/nonce-dir public-key /absolute/expected-signed-checkpoint.json | consume /private/nonce-dir nonce < response.json | respond /absolute/anchor.json /absolute/secret.hex nonce | verify public-key nonce installation minimum-seq [exact-prefix] < response.json\n"); exit(2);
+fwrite(STDERR,"Usage: initialize /private/nonce-dir | prune /private/nonce-dir | challenge | issue /private/nonce-dir public-key /absolute/expected-signed-checkpoint.json | consume /private/nonce-dir nonce < response.json | respond /absolute/anchor.json /absolute/secret.hex nonce | verify public-key nonce installation minimum-seq [exact-prefix] < response.json\n"); exit(2);
