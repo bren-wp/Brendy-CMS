@@ -35,6 +35,8 @@ final class RecoveryUuidSpool
         return true;
     }
 
+    public function __destruct() { $this->close(); }
+
     public function close(): void
     {
         foreach ($this->handles as $handle) fclose($handle);

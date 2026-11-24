@@ -1,4 +1,5 @@
 <?php defined('BRENDY') or die('Brendy CMS.');
+require_once __DIR__.'/recovery-uuid-spool.class.php';
 
 /** Authenticated, bounded atomic state. Exclusive restore gate required for writes.
  * The key is installation-local, outside the replaced content tree (tmp).
@@ -292,7 +293,8 @@ final class RecoveryLedger
         return $this->save(['schema'=>1,'active'=>null,'history'=>[]]);
     }
     // Read-only query retains one segment plus the selected receipts and a
-    // bounded exact ID set. All segments are verified before returning results.
+    // exact ID verification (disk-backed for large queries). All segments are
+    // verified before returning results. Explicit index collection retains the map.
     // The caller must hold the shared or exclusive restore gate.
     public function query(?int $page=null, array $wantedIds=[], ?int $sequence=null, bool $all=false, bool $collectIndex=false, ?callable $visitor=null)
     {
@@ -317,6 +319,7 @@ final class RecoveryLedger
             $ctx=hash_init('sha256'); hash_update($ctx,'[');
         }
         $ids=[]; $history=[]; $matches=[]; $last=null; $found=null; $seq=0;
+        $spool=(!$collectIndex && $total>=4096)?new RecoveryUuidSpool():null;
         // The sequence index determines the requested window. Even unrelated
         // segments are authenticated and checked for cross-segment duplicates.
         for ($i=0;$i<=count($index['shards']);$i++) {
@@ -324,8 +327,9 @@ final class RecoveryLedger
             if ($entries===false) return false;
             foreach ($entries as $r) {
                 ++$seq;
-                if (!self::validReceipt($r,$seq) || isset($ids[$r['id']])) return false;
-                $ids[$r['id']]=$seq;
+                if (!self::validReceipt($r,$seq)) return false;
+                if ($spool!==null) { if (!$spool->add($r['id'])) return false; }
+                else { if (isset($ids[$r['id']])) return false; $ids[$r['id']]=$seq; }
                 if ($visitor!==null && !$visitor($r)) return false;
                 if ($ctx!==null && $seq<=$anchor['seq']) { if ($seq>1) hash_update($ctx,','); hash_update($ctx,self::encode($r)); }
                 if ($all || ($seq>=$begin && $seq<=$end)) $history[]=$r;
@@ -335,7 +339,11 @@ final class RecoveryLedger
             }
             unset($entries);
         }
-        if ($seq!==$total || ($active!==null && (!is_array($active) || ($active['seq']??null)!==$total+1 || !is_string($active['id']??null) || isset($ids[$active['id']])))) return false;
+        if ($seq!==$total || ($active!==null && (!is_array($active) || ($active['seq']??null)!==$total+1 || !is_string($active['id']??null) || !preg_match('/^[a-f0-9]{32}$/D',$active['id']) || isset($ids[$active['id']])))) return false;
+        if ($spool!==null) {
+            if (($active!==null && !$spool->add($active['id'])) || !$spool->verify()) return false;
+            $spool->close();
+        }
         if ($ctx!==null) { hash_update($ctx,']'); if (!hash_equals($anchor['prefix'],hash_final($ctx))) return false; }
         // Never return a mixed generation even if a noncooperating writer changes the primary.
         if ($this->privateRead(self::FILE,self::LIMIT)!==$raw || $this->keys()!==$keys || $this->loadCheckpoint()!==$anchor) return false;

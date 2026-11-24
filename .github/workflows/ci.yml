@@ -1,0 +1,76 @@
+name: CMS verification
+on:
+  push:
+    branches: [main, development/recovery-ci]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install PHP runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php8.3-cli php8.3-mbstring php8.3-gd php8.3-xml php8.3-curl php8.3-zip apache2
+          sudo update-alternatives --set php /usr/bin/php8.3
+          php -v
+          php -r 'foreach (["mbstring","gd","dom","curl","zip","sodium"] as $m) if (!extension_loaded($m)) exit(1); if (!ZipArchive::isEncryptionMethodSupported(ZipArchive::EM_AES_256)) exit(2);'
+      - name: Syntax and runtime regression
+        run: |
+          git ls-files -z '*.php' | xargs -0 -n1 php -l
+          git ls-files -z '*.js' | xargs -0 -n1 node --check
+          php tests/run.php
+          php tests/uuid-spool-smoke.php
+          php tests/recovery-panel-smoke.php
+          php tests/concurrency-smoke.php
+      - name: ZIP and AES-256
+        run: php tests/zip-runtime-smoke.php
+      - name: HTTP isolation
+        run: |
+          sudo python3 tests/http-fixture.py
+          python3 tests/runtime-preflight.py
+          python3 tests/restore-gate-http.py
+          python3 tests/http-xml-snapshot.py
+      - name: Crash recovery
+        run: |
+          python3 tests/atomic-write-faults.py
+          python3 tests/recovery-publication-faults.py
+          python3 tests/recovery-anchor-cli-smoke.py
+      - name: Active ledger scale
+        run: |
+          d=$(mktemp -d)
+          trap 'rm -rf "$d"' EXIT
+          php -d memory_limit=256M tests/recovery-active-scale.php seed "$d"
+          php -d memory_limit=32M tests/recovery-active-scale.php exercise "$d"
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Browser dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/brendy-browser"
+          "$RUNNER_TEMP/brendy-browser/bin/pip" install playwright==1.55.0
+          command -v google-chrome
+      - name: Isolated browser components
+        run: |
+          export CHROMIUM="$(command -v google-chrome)"
+          for f in tests/browser-bootstrap5.py tests/browser-cloud-sort.py tests/browser-editor.py tests/browser-icons-datepicker.py; do
+            "$RUNNER_TEMP/brendy-browser/bin/python" "$f"
+          done
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Source and clone scans
+        run: |
+          php tests/source-audit.php
+          php tests/semantic-audit.php
+          php tests/clone-audit.php
+      - name: Dependency audit (unresolved findings fail)
+        run: python3 tests/dependency-audit.py --verify-registry
