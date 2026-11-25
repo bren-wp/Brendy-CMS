@@ -107,6 +107,23 @@ if '--verify-registry' in sys.argv:
   except (OSError,ValueError,KeyError,StopIteration,tarfile.TarError) as e:
    entry['provenance_error']=str(e)
 
+# Legacy sortable has a known distribution identity but not an independently
+# identified original package version. Keep OSV unresolved, not falsely clean.
+if '--verify-registry' in sys.argv:
+ entry=by_name['jquery-sortable']
+ reference='3c02c864989aad0f3065faf296f99baeb1dc16ad'
+ try:
+  with urllib.request.urlopen('https://raw.githubusercontent.com/bludit/bludit/'+reference+'/bl-kernel/js/jquery.sortable.min.js',timeout=15) as f:
+   data=f.read(65537)
+  if len(data)>65536 or data!=(root/'jezgra/js/jquery.sortable.min.js').read_bytes():
+   raise ValueError('Legacy sortable differs from pinned distribution')
+  entry['provenance']='pinned-distribution-file-match'
+  entry['source_reference']=reference
+  entry['source_sha256']=hashlib.sha256(data).hexdigest()
+  entry['osv_unresolved_reason']='Original sortable package and version still unidentified; distribution match does not establish advisory coverage.'
+ except (OSError,ValueError,KeyError) as e:
+  entry['provenance_error']=str(e)
+
 # Optional network provenance check, separate from advisory lookup. No package scripts executed.
 if '--verify-registry' in sys.argv:
  for entry,q in queries:

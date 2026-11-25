@@ -112,8 +112,8 @@
       "paths": [
         "jezgra/js/jquery.sortable.min.js"
       ],
-      "source": "",
-      "status": "Legacy public Theme::jsSortable() helper retained for third-party compatibility; no longer loaded by bundled admin."
+      "source": "https://github.com/bludit/bludit/blob/3c02c864989aad0f3065faf296f99baeb1dc16ad/bl-kernel/js/jquery.sortable.min.js",
+      "status": "Exact file match to Bludit 3.16.2 distribution; original library version and license lineage still unresolved. Public helper retained for third-party compatibility; not loaded by bundled admin."
     },
     {
       "name": "parsedown",
