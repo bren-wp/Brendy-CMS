@@ -42,7 +42,31 @@ Build a professional website without a separate database server. Brendy brings c
   </tr>
 </table>
 
-<!-- PRODUCT_GALLERY -->
+## See Brendy in action
+
+Actual product screens from a fresh Brendy CMS installation.
+
+<div align="center">
+  <img src="branding/screenshots/dashboard.png" alt="Brendy CMS administration dashboard" width="100%">
+</div>
+
+| Content management | Visual editor |
+| :---: | :---: |
+| <img src="branding/screenshots/content.png" alt="Content management" width="100%"> | <img src="branding/screenshots/editor.png" alt="Visual content editor" width="100%"> |
+
+| Themes | Included extensions |
+| :---: | :---: |
+| <img src="branding/screenshots/themes.png" alt="Theme selection" width="100%"> | <img src="branding/screenshots/extensions.png" alt="Extensions library" width="100%"> |
+
+| Website | Mobile website |
+| :---: | :---: |
+| <img src="branding/screenshots/website.png" alt="Public website" width="100%"> | <img src="branding/screenshots/website-mobile.png" alt="Responsive mobile website" width="230"> |
+
+| Installation | Sign in |
+| :---: | :---: |
+| <img src="branding/screenshots/installer.png" alt="Brendy installation" width="100%"> | <img src="branding/screenshots/login.png" alt="Brendy sign in" width="100%"> |
+
+
 
 ## A website for every idea
 
