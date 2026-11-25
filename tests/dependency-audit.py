@@ -7,7 +7,7 @@ inventory=json.loads((root/'DEPENDENCIES.json').read_text())['components']
 # Explicit package-to-file mapping; only byte-identical distributions are verified.
 mappings={
  'bootstrap':('npm','bootstrap',{'dist/css/bootstrap.min.css':'jezgra/css/bootstrap.min.css','dist/js/bootstrap.bundle.min.js':'jezgra/js/bootstrap.bundle.min.js'}),
- 'jquery-ui':('npm','jquery-ui-dist',{'jquery-ui.min.js':'jezgra/js/jquery-ui.min.js'}),
+ 'jquery-ui':('npm','jquery-ui',{'jquery-ui.min.js':'jezgra/js/jquery-ui.min.js'}),
  'jquery':('npm','jquery',{'dist/jquery.min.js':'jezgra/js/jquery.min.js'}),
  'select2':('npm','select2',{'dist/js/select2.full.min.js':'jezgra/js/select2.full.min.js','dist/css/select2.min.css':'jezgra/css/select2.min.css'}),
  'tinymce':('npm','tinymce',{'tinymce.min.js':'jezgra/urednik/tinymce/tinymce.min.js'}),
@@ -25,7 +25,8 @@ for c in inventory:
    for f in paths:
     if f.is_file() and not f.is_symlink():entry['local_files'][f.relative_to(root).as_posix()]=hashlib.sha256(f.read_bytes()).hexdigest()
  entry['missing_artifacts'] = not bool(entry['local_files'])
- if name=='brendy-select2-skin':entry['osv_status']='first-party';entry['provenance']='first-party'
+ if name in ('brendy-select2-skin','brendy-sortable-compat'):
+  entry['osv_status']='first-party';entry['provenance']='first-party'
  elif name in mappings and re.fullmatch(r'\d+\.\d+\.\d+',version):
   eco,pkg,_=mappings[name];queries.append((entry,{'package':{'name':pkg,'ecosystem':eco},'version':version}))
  components.append(entry)
@@ -98,7 +99,7 @@ if '--verify-registry' in sys.argv:
  # Compiled third-party assets inherit no automatic trust: check publisher
  # attribution against the verified distribution or exact component source.
  for name, verifier in [
-  ('prism-themes',lambda:verify_prism_theme_distribution(root,tiny['declared_version'],by_name['prism-themes']['declared_version'],tiny['verified_assets'])),
+  ('prism-themes',lambda:verify_prism_theme_distribution(root,tiny['declared_version'],by_name['prism-themes']['declared_version'])),
   ('popper.js',lambda:verify_bundled_popper(root,by_name['bootstrap']['declared_version'],by_name['popper.js']['declared_version']))]:
   entry=by_name[name]
   try:
@@ -106,23 +107,6 @@ if '--verify-registry' in sys.argv:
    entry['provenance']='verified-parent-distribution-attribution'
   except (OSError,ValueError,KeyError,StopIteration,tarfile.TarError) as e:
    entry['provenance_error']=str(e)
-
-# Legacy sortable has a known distribution identity but not an independently
-# identified original package version. Keep OSV unresolved, not falsely clean.
-if '--verify-registry' in sys.argv:
- entry=by_name['jquery-sortable']
- reference='3c02c864989aad0f3065faf296f99baeb1dc16ad'
- try:
-  with urllib.request.urlopen('https://raw.githubusercontent.com/bludit/bludit/'+reference+'/bl-kernel/js/jquery.sortable.min.js',timeout=15) as f:
-   data=f.read(65537)
-  if len(data)>65536 or data!=(root/'jezgra/js/jquery.sortable.min.js').read_bytes():
-   raise ValueError('Legacy sortable differs from pinned distribution')
-  entry['provenance']='pinned-distribution-file-match'
-  entry['source_reference']=reference
-  entry['source_sha256']=hashlib.sha256(data).hexdigest()
-  entry['osv_unresolved_reason']='Original sortable package and version still unidentified; distribution match does not establish advisory coverage.'
- except (OSError,ValueError,KeyError) as e:
-  entry['provenance_error']=str(e)
 
 # Optional network provenance check, separate from advisory lookup. No package scripts executed.
 if '--verify-registry' in sys.argv:

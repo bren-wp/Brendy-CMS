@@ -123,6 +123,7 @@ def verify_tiny_assets(root, version, dom_verified, prism_verified):
         raise ValueError('Embedded library provenance must be verified first')
     folder=root/'jezgra/urednik/tinymce'
     evidence={}
+    errors=[]
     # Only explicitly enumerated local documentation/license files are excluded.
     # The language bundle is executable and must match upstream too.
     notices={'DOMPurify-LICENSE-MPL.txt','DOMPurify-LICENSE.txt','Prism-LICENSE.txt','notices.txt'}
@@ -135,47 +136,66 @@ def verify_tiny_assets(root, version, dom_verified, prism_verified):
             rel=path.relative_to(folder).as_posix()
             if rel in notices:
                 continue
-            local=path.read_bytes()
-            if rel=='langs/hr.js':
-                evidence[rel]=verify_locale(root)
-                continue
-            upstream=member(tar,rel)
-            if rel=='tinymce.min.js':
-                # Original declaration may be part of a comma-separated var
-                # statement. Permit only that exact documented delimiter change.
-                # The upstream DOMPurify version notice is the sole header edit.
-                def prefix_transform(prefix):
-                    versions=re.findall(rb'DOMPurify ([0-9]+\.[0-9]+\.[0-9]+)',upstream[:500])
-                    if len(set(versions))!=1:
-                        raise ValueError('Unknown upstream DOMPurify notice')
-                    old=versions[0]
-                    prefix=prefix.replace(b'DOMPurify 3.5.0',b'DOMPurify '+old,1).replace(b'/blob/3.5.0/LICENSE',b'/blob/'+old+b'/LICENSE',1)
-                    if prefix.endswith(b';'):
-                        if upstream.startswith(prefix[:-1]+b',Jw='):
-                            return prefix[:-1]
-                    return prefix
-                evidence[rel]=compare_outside_patch(local,upstream,DOM_START,DOM_END,prefix_transform)
-            elif rel=='plugins/codesample/plugin.min.js':
-                evidence[rel]=compare_outside_patch(local,upstream,PRISM_START,PRISM_END)
-            elif local!=upstream:
-                raise ValueError('Editor asset differs: '+rel)
-            else:
-                evidence[rel]=hashlib.sha256(local).hexdigest()
+            try:
+                local=path.read_bytes()
+                if rel=='langs/hr.js':
+                    evidence[rel]=verify_locale(root)
+                    continue
+                if rel=='license.md':
+                    reference='4ef63a1c99ac348152f5a19d5a4d57e627dfc692'
+                    with urllib.request.urlopen('https://raw.githubusercontent.com/tinymce/tinymce/'+reference+'/LICENSE.md',timeout=15) as f:
+                        source_license=f.read(65537)
+                    if len(source_license)>65536 or local!=source_license:
+                        raise ValueError('Local license differs from tagged upstream source')
+                    # The npm distribution may have different copyright or formatting.
+                    # Preserve the verified tagged source notice and record both hashes.
+                    package_license=member(tar,rel)
+                    evidence[rel]={'source_reference':reference,'source_sha256':hashlib.sha256(local).hexdigest(),
+                                   'package_sha256':hashlib.sha256(package_license).hexdigest(),
+                                   'package_bytes_equal':local==package_license}
+                    continue
+                upstream=member(tar,rel)
+                if rel=='tinymce.min.js':
+                    # Original declaration may be part of a comma-separated var
+                    # statement. Permit only that exact documented delimiter change.
+                    # The upstream DOMPurify version notice is the sole header edit.
+                    def prefix_transform(prefix):
+                        versions=re.findall(rb'DOMPurify ([0-9]+\.[0-9]+\.[0-9]+)',upstream[:500])
+                        if len(set(versions))!=1:
+                            raise ValueError('Unknown upstream DOMPurify notice')
+                        old=versions[0]
+                        prefix=prefix.replace(b'DOMPurify 3.5.0',b'DOMPurify '+old,1).replace(b'/blob/3.5.0/LICENSE',b'/blob/'+old+b'/LICENSE',1)
+                        if prefix.endswith(b';'):
+                            if upstream.startswith(prefix[:-1]+b',Jw='):
+                                return prefix[:-1]
+                        return prefix
+                    evidence[rel]=compare_outside_patch(local,upstream,DOM_START,DOM_END,prefix_transform)
+                elif rel=='plugins/codesample/plugin.min.js':
+                    evidence[rel]=compare_outside_patch(local,upstream,PRISM_START,PRISM_END)
+                elif local!=upstream:
+                    raise ValueError('Editor asset differs: '+rel)
+                else:
+                    evidence[rel]=hashlib.sha256(local).hexdigest()
+            except (OSError,ValueError,KeyError,StopIteration,tarfile.TarError) as e:
+                errors.append(rel+': '+str(e))
+    if errors:
+        raise ValueError('Editor verification failures: '+'; '.join(errors))
     return evidence
 
 
-def verify_prism_theme_distribution(root, tiny_version, theme_version, verified_assets):
+def verify_prism_theme_distribution(root, tiny_version, theme_version):
     # The theme CSS is compiled inside TinyMCE, not a standalone Prism package.
     # Require exact verified TinyMCE skin bytes and the publisher's own notice.
     with npm_package('tinymce',tiny_version) as tar:
         notices=member(tar,'notices.txt').decode('utf-8')
         if not re.search(r'(?m)^prism-themes\s*\n(?:(?!\n\s*\n)[\s\S])*?^version:\s*'+re.escape(theme_version)+r'\s*$',notices):
             raise ValueError('Upstream theme version notice missing')
-        skins=[p for p in verified_assets if p.startswith('skins/') and p.endswith('.css')]
+        folder=root/'jezgra/urednik/tinymce'
+        skins=[p.relative_to(folder).as_posix() for p in sorted((folder/'skins').rglob('*.css')) if p.is_file() and not p.is_symlink()]
         if not skins:
             raise ValueError('No verified upstream skin assets')
         for rel in skins:
-            if hashlib.sha256(member(tar,rel)).hexdigest()!=verified_assets[rel]:
+            if member(tar,rel)!=(folder/rel).read_bytes():
                 raise ValueError('Skin digest mismatch: '+rel)
     return {'embedded_in':'tinymce@'+tiny_version,'upstream_notices_version':theme_version,'verified_skins':skins}
 

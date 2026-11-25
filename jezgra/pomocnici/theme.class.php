@@ -1267,7 +1267,7 @@ class Theme
 
 	public static function jsSortable($attributes = '')
 	{
-		// Legacy public helper for third-party extensions (HTML5 Sortable).
+		// Public legacy-compatible sortable helper backed by Brendy's native adapter.
 		$attributes = self::scriptAttributes($attributes);
 		$attributePrefix = $attributes === '' ? '' : $attributes . ' ';
 		return '<script ' . $attributePrefix . 'src="' . DOMAIN_CORE_JS . 'jquery.sortable.min.js?version=' . rawurlencode(BRENDY_BUILD) . '"></script>' . PHP_EOL;

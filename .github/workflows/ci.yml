@@ -82,7 +82,7 @@ jobs:
       - name: Isolated browser components
         run: |
           export CHROMIUM="$(command -v google-chrome)"
-          for f in tests/browser-bootstrap5.py tests/browser-cloud-sort.py tests/browser-editor.py tests/browser-icons-datepicker.py; do
+          for f in tests/browser-bootstrap5.py tests/browser-cloud-sort.py tests/browser-sortable-compat.py tests/browser-editor.py tests/browser-icons-datepicker.py; do
             "$RUNNER_TEMP/brendy-browser/bin/python" "$f"
           done
   security:
