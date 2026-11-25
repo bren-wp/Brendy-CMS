@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory(prefix='brendy-capture-') as tmp:
     conf = temp / 'httpd.conf'
     modules = ['mpm_prefork','authz_core','authz_host','access_compat','dir','mime','rewrite','headers','autoindex','negotiation','expires','filter','deflate','env']
     conf.write_text(
-        f'ServerRoot "{temp}"\nListen 127.0.0.1:{port}\nServerName 127.0.0.1\nPidFile "{temp}/httpd.pid"\nErrorLog "{temp}/error.log"\nLogLevel warn\nUser www-data\nGroup www-data\nTypesConfig /etc/mime.types\n'
+        f'ServerRoot "{temp}"\nListen 127.0.0.1:{port}\nServerName 127.0.0.1:{port}\nUseCanonicalName On\nPidFile "{temp}/httpd.pid"\nErrorLog "{temp}/error.log"\nLogLevel warn\nUser www-data\nGroup www-data\nTypesConfig /etc/mime.types\n'
         + ''.join(f'LoadModule {m}_module /usr/lib/apache2/modules/mod_{m}.so\n' for m in modules)
         + 'LoadModule php_module /usr/lib/apache2/modules/libphp8.3.so\n'
         + 'PHPIniDir /etc/php/8.3/apache2\n'
@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix='brendy-capture-') as tmp:
         + f'DocumentRoot "{site}"\nDirectoryIndex index.php\n<Directory "{site}">\nAllowOverride All\nOptions FollowSymLinks\nRequire local\n</Directory>\n'
         + '<FilesMatch "\\.php$">\nSetHandler application/x-httpd-php\n</FilesMatch>\n',
         encoding='utf-8')
-    proc = subprocess.Popen(['sudo','apache2','-f',str(conf),'-DFOREGROUND'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    proc = subprocess.Popen(['sudo','apache2','-f',str(conf),'-DFOREGROUND'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
     try:
         for _ in range(100):
             if proc.poll() is not None:
@@ -76,6 +76,28 @@ with tempfile.TemporaryDirectory(prefix='brendy-capture-') as tmp:
                 print('[CAPTURE] '+name,flush=True)
             open_page('/install.php','#jsformInstaller')
             shot('installer')
+            # Exercise real installer security with the browser's session cookie.
+            # The invalid requests never follow redirects or send data off-host.
+            csrf = page.locator('input[name=install_csrf]').input_value()
+            if not re.fullmatch(r'[a-f0-9]{64}',csrf):
+                raise RuntimeError('Installer did not provide a valid CSRF token')
+            if not any(c['name']=='BRENDY_INSTALL' for c in context.cookies(base)):
+                raise RuntimeError('Installer session cookie is missing')
+            fields={'install_csrf':csrf,'email':'admin@example.com','password':password,'timezone':'Europe/Zagreb'}
+            for label,origin,fetch_site,token in (
+                ('cross-origin','https://example.invalid','cross-site',csrf),
+                ('opaque-origin','null','same-origin',csrf),
+                ('invalid-token',base,'same-origin','0'*64),
+            ):
+                response=context.request.post(base+'/install.php',
+                    form={**fields,'install_csrf':token},
+                    headers={'Origin':origin,'Sec-Fetch-Site':fetch_site},
+                    max_redirects=0,timeout=15000)
+                if response.status!=403 or (site/'sadrzaj/databases/site.php').exists():
+                    raise RuntimeError('Installer incorrectly accepted '+label)
+                response.dispose()
+                print('[PASS] Installer rejects '+label,flush=True)
+            open_page('/install.php','#jsformInstaller')
             page.locator('#jsemail').fill('admin@example.com')
             page.locator('#jspassword').fill(password)
             print('[INSTALL] Submitting the real installer form',flush=True)
@@ -83,6 +105,9 @@ with tempfile.TemporaryDirectory(prefix='brendy-capture-') as tmp:
                 page.locator('#jsformInstaller button[type=submit]').click(timeout=15000)
             result=submission.value
             print('[INSTALL] HTTP status '+str(result.status),flush=True)
+            headers=result.request.all_headers()
+            origin=headers.get('origin','(absent)')
+            print('[INSTALL] Origin='+('same-origin' if origin==base else 'null' if origin=='null' else 'absent' if origin=='(absent)' else 'unexpected')+'; Fetch-Site='+headers.get('sec-fetch-site','(absent)')+'; session-cookie-present='+str('BRENDY_INSTALL=' in headers.get('cookie','')),flush=True)
             if result.status not in (301,302,303):
                 # Only print the visible validation message, never form data.
                 alert=page.locator('.alert-danger,.error-table').first
@@ -167,9 +192,12 @@ Actual product screens from a fresh Brendy CMS installation.
             print('[APACHE] '+lines,flush=True)
         raise
     finally:
-        subprocess.run(['sudo','apache2','-f',str(conf),'-k','stop'],check=False,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-        try: proc.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            proc.terminate()
+        # Apache stops its own process group; it must never include the runner.
+        if proc.poll() is None:
+            subprocess.run(['sudo','apache2','-f',str(conf),'-k','stop'],check=False,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=15,start_new_session=True)
+            try: proc.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                proc.terminate()
+                proc.wait(timeout=10)
         # Return ownership only within the isolated temporary directory for cleanup.
         subprocess.run(['sudo','chown','-R',f'{os.getuid()}:{os.getgid()}',str(temp)],check=False)
