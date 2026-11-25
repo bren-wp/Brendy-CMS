@@ -562,6 +562,8 @@ RewriteRule ^(?!(?:index|install)\\.php$).*\\.(?:php[0-9]*|pht|phtml|phar|phps|i
 
 # Developer tests are CLI-only and must never be reachable over HTTP.
 RewriteRule ^tests(?:/|$) - [R=404,L,NC]
+RewriteRule ^(?:docs|LICENSES)(?:/|$) - [R=404,L,NC]
+RewriteRule ^(?:LICENSE|EULA\.md|THIRD-PARTY-NOTICES\.md)$ - [R=404,L,NC]
 
 
 # All URL process by index.php

@@ -5,7 +5,7 @@
 
 **Your website. Your content. Your control.**
 
-By **Brendigo LTD** · Self-hosted content management
+By **Brendigo LTD** · Self-hosted flat-file CMS
 
 [Commercial license](LICENSE) · [EULA](EULA.md) · [Brendigo](https://brendigo.com)
 </div>
@@ -31,7 +31,7 @@ Brendy CMS brings pages, articles, media, navigation and editorial workflows tog
 
 ## Your content belongs to you
 
-Brendy CMS uses file-based content storage, with no separate SQL database required. Host it on a compatible PHP server and manage your website in one place.
+Brendy CMS stores your website content in JSON-backed files on your own hosting. No MySQL, MariaDB or separate database server is required. Install on a compatible PHP host, create your pages and take your content with you.
 
 <div align="center">
 <img src="branding/logo.svg" alt="Brendy" width="64">

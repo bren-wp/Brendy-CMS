@@ -11,7 +11,7 @@
         "jezgra/urednik/tinymce/**"
       ],
       "source": "https://www.tiny.cloud/docs/tinymce/latest/changelog/",
-      "status": "8.10.2 local custom build with DOMPurify 3.5.0; not byte-identical to upstream core. Cloud explicit environment opt-in only."
+      "status": "8.10.2 local custom build with DOMPurify 3.5.0; not byte-identical to upstream core. Cloud explicit environment opt-in only. Croatian language pack is locally customized static translation data, validated against versioned community package tinymce-i18n 26.11.2; redistribution rights remain subject to TinyMCE terms."
     },
     {
       "name": "dompurify",
@@ -35,13 +35,13 @@
     },
     {
       "name": "prism-themes",
-      "installed": "1.9.0 (notices; not independently verified)",
-      "target": "unverified",
+      "installed": "1.9.0",
+      "target": "1.9.0",
       "paths": [
         "jezgra/urednik/tinymce/**"
       ],
       "source": "https://github.com/PrismJS/prism-themes",
-      "status": "Replaced with corresponding assets from TinyMCE 8.10.2; exact version per vendor notices only."
+      "status": "Version declared in upstream TinyMCE notices; audit requires exact upstream skin bytes and matching publisher notice."
     },
     {
       "name": "jquery",
@@ -106,14 +106,14 @@
       "status": "Four runtime files match supplied ZIP; removed cloud-haze-1 supported by a separate local alias stylesheet. Upstream authenticity not independently verified."
     },
     {
-      "name": "jquery-sortable",
-      "installed": "unverified",
-      "target": "unverified",
+      "name": "brendy-sortable-compat",
+      "installed": "1.0.0",
+      "target": "first-party compatibility adapter",
       "paths": [
         "jezgra/js/jquery.sortable.min.js"
       ],
       "source": "",
-      "status": "Legacy public Theme::jsSortable() helper retained for third-party compatibility; no longer loaded by bundled admin."
+      "status": "First-party native drag-and-drop adapter replacing legacy unidentified third-party executable; historical path and jQuery API retained. Browser regression required."
     },
     {
       "name": "parsedown",
@@ -132,8 +132,8 @@
       "paths": [
         "jezgra/js/jquery-ui.min.js"
       ],
-      "source": "https://jqueryui.com/",
-      "status": "Supplied custom bundle used only on plugin position page; upstream authenticity not independently verified."
+      "source": "https://github.com/jquery/jquery-ui/tree/eda7aa34fa59d8f764b2164be3e3b7f14639b0db",
+      "status": "Official tagged 1.14.2 distribution, pinned upstream commit; includes all modules from the previous custom build. Runtime regression required."
     }
   ]
 }

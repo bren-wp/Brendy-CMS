@@ -4,7 +4,7 @@ require_once dirname(__DIR__).'/jezgra/pomocnici/tcp.class.php';
 return array(
  'SSRF rejects translation, private and ambiguous hosts' => static function () {
     $address = new ReflectionMethod(TCP::class, 'isPublicAddress');
-    foreach (array('64:ff9b::7f00:1','64:ff9b:1::a00:1','::ffff:127.0.0.1','2002:7f00:1::','127.0.0.1','100.64.0.1','169.254.169.254','fc00::1','::1') as $ip) brendyTestAssert(!$address->invoke(null,$ip),'Non-public IP accepted');
+    foreach (array('64:ff9b::7f00:1','64:ff9b:1::a00:1','::ffff:127.0.0.1','2002:7f00:1::','127.0.0.1','100.64.0.1','169.254.169.254','fc00::1','::1','2001::1','2001:db8::1','3fff::1','192.0.0.1','198.18.0.1','224.0.0.1','240.0.0.1','192.88.99.1') as $ip) brendyTestAssert(!$address->invoke(null,$ip),'Non-public IP accepted: '.$ip);
     foreach (array('8.8.8.8','2606:4700:4700::1111') as $ip) brendyTestAssert($address->invoke(null,$ip),'Public IP rejected');
     $resolve = new ReflectionMethod(TCP::class, 'resolvePublicHttpsUrl');
     foreach (array('https://127.1/','https://2130706433/','https://0x7f.0.0.1/','https://[64:ff9b::7f00:1]/','https://localhost/','http://8.8.8.8/','https://8.8.8.8:444/','https://user@8.8.8.8/') as $url) brendyTestAssert($resolve->invoke(null,$url)===false,'Unsafe URL accepted');

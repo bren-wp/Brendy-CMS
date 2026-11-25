@@ -4,7 +4,7 @@ import fcntl, http.client, pathlib, shutil, socket, subprocess, tempfile, time
 root=pathlib.Path(__file__).resolve().parent.parent
 with tempfile.TemporaryDirectory(prefix='brendy-gate-') as d:
     base=pathlib.Path(d)
-    for rel in ['index.php','install.php','jezgra/pokretanje/restore-gate.php','jezgra/pomocnici/filesystem.class.php','jezgra/pomocnici/restore-journal.class.php','jezgra/pomocnici/recovery-ledger.class.php']:
+    for rel in ['index.php','install.php','jezgra/pokretanje/restore-gate.php','jezgra/pomocnici/filesystem.class.php','jezgra/pomocnici/restore-journal.class.php','jezgra/pomocnici/recovery-ledger.class.php','jezgra/pomocnici/recovery-uuid-spool.class.php']:
         target=base/rel;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(root/rel,target)
     content=base/'sadrzaj';tmp=content/'tmp';tmp.mkdir(parents=True)
     stage='restore-'+'a'*32; incoming=tmp/stage/'sadrzaj';(incoming/'databases').mkdir(parents=True)
