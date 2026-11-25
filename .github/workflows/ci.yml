@@ -20,7 +20,11 @@ jobs:
           sudo update-alternatives --set php /usr/bin/php8.3
           php -v
           php -r 'foreach (["mbstring","gd","dom","curl","zip","sodium"] as $m) if (!extension_loaded($m)) exit(1); if (!ZipArchive::isEncryptionMethodSupported(ZipArchive::EM_AES_256)) exit(2);'
+      - name: Complete flat-file CMS source inventory
+        if: ${{ !cancelled() }}
+        run: python3 tests/source-inventory.py
       - name: Syntax and runtime regression
+        if: ${{ !cancelled() && steps.php_setup.outcome == 'success' }}
         run: |
           git ls-files -z '*.php' | xargs -0 -n1 php -l
           git ls-files -z '*.js' | xargs -0 -n1 node --check

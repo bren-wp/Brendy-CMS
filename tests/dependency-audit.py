@@ -45,10 +45,49 @@ if queries:
    entry['advisories']=[v['id'] for v in result.get('vulns',[])];entry['osv_status']='findings' if entry['advisories'] else 'no-reported-advisories'
  except (OSError,ValueError,KeyError) as e:
   report['osv_network_error']=str(e)
+# Fetch immutable source reference from Packagist for the exact declared release.
+# Compare all bytes, not just a version banner.
+def verify_parsedown(entry):
+ from urllib.parse import urlparse
+ with urllib.request.urlopen('https://repo.packagist.org/p2/erusev/parsedown.json',timeout=10) as f:
+  versions=json.load(f)['packages']['erusev/parsedown']
+ version=next(v for v in versions if v['version'].lstrip('v')==entry['declared_version'])
+ source=version['source']
+ if source['url'] not in ('https://github.com/erusev/parsedown.git','https://github.com/erusev/parsedown') or not re.fullmatch('[0-9a-f]{40}',source['reference']):
+  raise ValueError('Unexpected Parsedown source identity')
+ with urllib.request.urlopen('https://raw.githubusercontent.com/erusev/parsedown/'+source['reference']+'/Parsedown.php',timeout=15) as f:
+  data=f.read(2*1024*1024+1)
+ if len(data)>2*1024*1024 or data!=(root/'jezgra/parsedown.class.php').read_bytes():
+  raise ValueError('Parsedown bytes differ from release source')
+ entry['source_reference']=source['reference']
+ entry['provenance']='packagist-release-source-match'
+
+def verify_jquery_ui(entry):
+ # The local custom distribution includes the complete list of UI components.
+ # Compare the executable bytes to the official distribution. Only the single
+ # leading build banner may vary; all bytes of the executable body must match.
+ version=entry['declared_version']
+ with urllib.request.urlopen('https://code.jquery.com/ui/'+version+'/jquery-ui.min.js',timeout=15) as f:
+  data=f.read(4*1024*1024+1)
+ local=(root/'jezgra/js/jquery-ui.min.js').read_bytes()
+ def body(raw):
+  if not raw.startswith(('/*! jQuery UI - v'+version).encode()) or b'*/' not in raw:
+   raise ValueError('Unexpected jQuery UI build banner')
+  return raw.split(b'*/',1)[1].lstrip(b'\r\n')
+ if len(data)>4*1024*1024 or body(data)!=body(local):
+  raise ValueError('jQuery UI executable bytes differ from official distribution')
+ entry['provenance']='official-distribution-code-match'
+ entry['source_sha256']=hashlib.sha256(data).hexdigest()
+
 # Optional network provenance check, separate from advisory lookup. No package scripts executed.
 if '--verify-registry' in sys.argv:
  for entry,q in queries:
   eco,pkg,files=mappings[entry['name']]
+  if entry['name'] in ('parsedown','jquery-ui'):
+   try:
+    (verify_parsedown if entry['name']=='parsedown' else verify_jquery_ui)(entry)
+   except (OSError,ValueError,KeyError,StopIteration) as e:entry['provenance_error']=str(e)
+   continue
   if eco!='npm' or not files:continue
   try:
    from urllib.parse import quote,urlparse
