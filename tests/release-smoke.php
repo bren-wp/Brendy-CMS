@@ -98,6 +98,11 @@ return array(
         brendyTestAssert(Paginator::window(99, 3, 2) === array(1, 2, 3), 'Paginator did not clamp an out-of-range current page.');
         brendyTestAssert(Paginator::window(1, 1000001, 2) === array(), 'Paginator accepted an unsafe page count.');
     },
+    'installer preserves browser form provenance without external referrers' => static function () {
+        $source = (string)file_get_contents(dirname(__DIR__) . DS . 'install.php');
+        brendyTestAssert(strpos($source, "header('Referrer-Policy: same-origin');") !== false, 'Installer must preserve same-origin form provenance.');
+        brendyTestAssert(strpos($source, "!brendyInstallerSameOriginRequest() || !hash_equals") !== false, 'Installer must retain both same-origin and CSRF validation.');
+    },
     'installer writes completion marker last' => static function () {
         $source = (string)file_get_contents(dirname(__DIR__) . DS . 'install.php');
         $integrity = strpos($source, "writeJsonDatabaseAtomic(DB_CORE_INTEGRITY");

@@ -1,0 +1,43 @@
+name: Capture real product screenshots
+on:
+  push:
+    branches: [docs/marketing-readme]
+    paths:
+      - '.github/workflows/product-screenshots.yml'
+      - 'tests/capture-product-screens.py'
+permissions:
+  contents: read
+concurrency:
+  group: brendy-marketing-screenshots
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.repository == 'bren-wp/Brendy-CMS' && github.ref == 'refs/heads/docs/marketing-readme'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+      - name: Install PHP and browser dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apache2 libapache2-mod-php8.3 php8.3-cli php8.3-mbstring php8.3-gd php8.3-xml php8.3-curl php8.3-zip
+          python3 -m venv "$RUNNER_TEMP/brendy-capture-venv"
+          "$RUNNER_TEMP/brendy-capture-venv/bin/pip" install playwright==1.55.0
+          command -v google-chrome
+      - name: Install isolated CMS and capture real screens
+        timeout-minutes: 6
+        run: |
+          export CHROMIUM="$(command -v google-chrome)"
+          "$RUNNER_TEMP/brendy-capture-venv/bin/python" tests/capture-product-screens.py
+      - name: Publish verified screenshots to this documentation branch
+        run: |
+          git add README.md branding/screenshots/installer.png branding/screenshots/login.png branding/screenshots/dashboard.png branding/screenshots/content.png branding/screenshots/editor.png branding/screenshots/themes.png branding/screenshots/extensions.png branding/screenshots/website.png branding/screenshots/website-mobile.png
+          git diff --cached --stat
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Add real Brendy CMS product screenshots to marketing README"
+          git push origin HEAD:refs/heads/docs/marketing-readme

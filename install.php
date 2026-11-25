@@ -45,7 +45,9 @@ $installCspNonce = bin2hex(random_bytes(24));
 header_remove('X-Powered-By');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
-header('Referrer-Policy: no-referrer');
+// Chromium may serialize the Origin of a form POST as null under no-referrer.
+// Keep same-origin form provenance available without disclosing URLs externally.
+header('Referrer-Policy: same-origin');
 header('Cache-Control: no-store, max-age=0');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()');
 header('Cross-Origin-Opener-Policy: same-origin');
