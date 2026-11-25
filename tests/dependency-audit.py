@@ -63,20 +63,17 @@ def verify_parsedown(entry):
  entry['provenance']='packagist-release-source-match'
 
 def verify_jquery_ui(entry):
- # The local custom distribution includes the complete list of UI components.
- # Compare the executable bytes to the official distribution. Only the single
- # leading build banner may vary; all bytes of the executable body must match.
- version=entry['declared_version']
- with urllib.request.urlopen('https://code.jquery.com/ui/'+version+'/jquery-ui.min.js',timeout=15) as f:
+ # Compare the complete tagged upstream distribution, pinned to an immutable
+ # Git commit. No custom build or executable normalization is accepted.
+ reference='eda7aa34fa59d8f764b2164be3e3b7f14639b0db'
+ if entry['declared_version']!='1.14.2':raise ValueError('Unreviewed jQuery UI version')
+ with urllib.request.urlopen('https://raw.githubusercontent.com/jquery/jquery-ui/'+reference+'/dist/jquery-ui.min.js',timeout=15) as f:
   data=f.read(4*1024*1024+1)
  local=(root/'jezgra/js/jquery-ui.min.js').read_bytes()
- def body(raw):
-  if not raw.startswith(('/*! jQuery UI - v'+version).encode()) or b'*/' not in raw:
-   raise ValueError('Unexpected jQuery UI build banner')
-  return raw.split(b'*/',1)[1].lstrip(b'\r\n')
- if len(data)>4*1024*1024 or body(data)!=body(local):
-  raise ValueError('jQuery UI executable bytes differ from official distribution')
- entry['provenance']='official-distribution-code-match'
+ if len(data)>4*1024*1024 or data!=local:
+  raise ValueError('jQuery UI differs from pinned official distribution')
+ entry['provenance']='upstream-tagged-distribution-match'
+ entry['source_reference']=reference
  entry['source_sha256']=hashlib.sha256(data).hexdigest()
 
 # Verify documented custom editor integrations without accepting a version banner or local hash as proof.

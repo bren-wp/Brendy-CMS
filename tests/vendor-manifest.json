@@ -168,9 +168,9 @@
       "sha256": "4ee0cbc51370afde358652a0f977972053729ed578b6a42f5e2a037d114f0b39"
     },
     "jezgra/js/jquery-ui.min.js": {
-      "archive": "jquery-ui-1.14.2.custom.zip",
-      "member": "jquery-ui-1.14.2.custom/jquery-ui.min.js",
-      "sha256": "4bf75939da467d2ba77a448db010fa1699d31366aa1825764a379e29e6f9db07"
+      "archive": "jquery/jquery-ui@eda7aa34fa59d8f764b2164be3e3b7f14639b0db",
+      "member": "dist/jquery-ui.min.js",
+      "sha256": "99b95259f6d8cdaabf7fee1a93232113a5c42c2a2ee236e480fbfe2503c44763"
     },
     "jezgra/js/jquery-ui-license.txt": {
       "archive": "jquery-ui-1.14.2.custom.zip",

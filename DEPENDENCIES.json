@@ -132,8 +132,8 @@
       "paths": [
         "jezgra/js/jquery-ui.min.js"
       ],
-      "source": "https://jqueryui.com/",
-      "status": "Supplied custom bundle used only on plugin position page; upstream authenticity not independently verified."
+      "source": "https://github.com/jquery/jquery-ui/tree/eda7aa34fa59d8f764b2164be3e3b7f14639b0db",
+      "status": "Official tagged 1.14.2 distribution, pinned upstream commit; includes all modules from the previous custom build. Runtime regression required."
     }
   ]
 }

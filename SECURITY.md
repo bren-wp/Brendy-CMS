@@ -138,3 +138,6 @@ The CI source inventory pins required paths from the verified import, not mutabl
 
 ### Custom editor provenance checks
 The dependency audit now verifies the exact embedded DOMPurify distribution and ordered Prism language components against SHA-512-checked npm tarballs. It separately checks every shipped upstream TinyMCE asset and the bytes outside documented integration boundaries. Local notices are not executable. An unverified locale, differing executable bytes, unknown wrapper, missing component or network failure keeps the audit red. This is a provenance check, not an independent review of the custom integration or proof of commercial redistribution rights. No vendor assets were replaced.
+
+### jQuery UI upstream distribution
+The custom 1.14.2 build was replaced with the official distribution at upstream commit `eda7aa34fa59d8f764b2164be3e3b7f14639b0db`. Every module listed in the old build is present in the new build. The dependency audit now requires byte equality against that exact upstream file. Browser and CMS regressions remain mandatory; the other unresolved dependencies are not waived.
