@@ -79,7 +79,7 @@ def verify_jquery_ui(entry):
 # Verify documented custom editor integrations without accepting a version banner or local hash as proof.
 # Exact component comparison is independent from the full editor asset verification.
 if '--verify-registry' in sys.argv:
- from editor_provenance import verify_dompurify, verify_prism, verify_tiny_assets
+ from editor_provenance import verify_dompurify, verify_prism, verify_tiny_assets, verify_prism_theme_distribution, verify_bundled_popper
  by_name={entry['name']:entry for entry in components}
  for name, verifier in [('dompurify',verify_dompurify),('prismjs',verify_prism)]:
   entry=by_name[name]
@@ -94,6 +94,18 @@ if '--verify-registry' in sys.argv:
   tiny['provenance']='registry-assets-and-documented-patches-match'
  except (OSError,ValueError,KeyError,StopIteration,tarfile.TarError) as e:
   tiny['provenance_error']=str(e)
+
+ # Compiled third-party assets inherit no automatic trust: check publisher
+ # attribution against the verified distribution or exact component source.
+ for name, verifier in [
+  ('prism-themes',lambda:verify_prism_theme_distribution(root,tiny['declared_version'],by_name['prism-themes']['declared_version'],tiny['verified_assets'])),
+  ('popper.js',lambda:verify_bundled_popper(root,by_name['bootstrap']['declared_version'],by_name['popper.js']['declared_version']))]:
+  entry=by_name[name]
+  try:
+   entry['distribution_evidence']=verifier()
+   entry['provenance']='verified-parent-distribution-attribution'
+  except (OSError,ValueError,KeyError,StopIteration,tarfile.TarError) as e:
+   entry['provenance_error']=str(e)
 
 # Optional network provenance check, separate from advisory lookup. No package scripts executed.
 if '--verify-registry' in sys.argv:

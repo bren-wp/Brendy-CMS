@@ -11,7 +11,7 @@
         "jezgra/urednik/tinymce/**"
       ],
       "source": "https://www.tiny.cloud/docs/tinymce/latest/changelog/",
-      "status": "8.10.2 local custom build with DOMPurify 3.5.0; not byte-identical to upstream core. Cloud explicit environment opt-in only."
+      "status": "8.10.2 local custom build with DOMPurify 3.5.0; not byte-identical to upstream core. Cloud explicit environment opt-in only. Croatian language pack is locally customized static translation data, validated against versioned community package tinymce-i18n 26.11.2; redistribution rights remain subject to TinyMCE terms."
     },
     {
       "name": "dompurify",
@@ -35,13 +35,13 @@
     },
     {
       "name": "prism-themes",
-      "installed": "1.9.0 (notices; not independently verified)",
-      "target": "unverified",
+      "installed": "1.9.0",
+      "target": "1.9.0",
       "paths": [
         "jezgra/urednik/tinymce/**"
       ],
       "source": "https://github.com/PrismJS/prism-themes",
-      "status": "Replaced with corresponding assets from TinyMCE 8.10.2; exact version per vendor notices only."
+      "status": "Version declared in upstream TinyMCE notices; audit requires exact upstream skin bytes and matching publisher notice."
     },
     {
       "name": "jquery",

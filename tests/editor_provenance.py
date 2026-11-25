@@ -78,6 +78,46 @@ def compare_outside_patch(local, upstream, start, end, prefix_transform=lambda x
         raise ValueError('Executable bytes outside documented integration differ')
     return hashlib.sha256(upstream[len(prefix):len(upstream)-len(suffix)]).hexdigest()
 
+def translation_data(raw):
+    # Parse only the static addI18n call. No JavaScript evaluation.
+    if len(raw)>256*1024:
+        raise ValueError('Locale size limit')
+    m=re.fullmatch(rb'\s*tinymce\.addI18n\("hr",\s*(\{[\s\S]*\})\s*\);?\s*',raw)
+    if not m:
+        raise ValueError('Unexpected locale executable wrapper')
+    # JS hex escapes are permitted only as string escape tokens.
+    body=re.sub(rb'\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2})',
+                lambda m: b'\\u00'+m.group()[2:] if m.group().startswith(b'\\x') else m.group(),m.group(1))
+    def pairs(items):
+        result={}
+        for k,v in items:
+            if k in result or k in ('__proto__','constructor','prototype'):
+                raise ValueError('Unsafe or duplicate translation key')
+            result[k]=v
+        return result
+    data=json.loads(body.decode('utf-8'),object_pairs_hook=pairs)
+    if not isinstance(data,dict) or not data or len(data)>2000:
+        raise ValueError('Invalid locale object')
+    for key,value in data.items():
+        if not isinstance(value,str) or len(key)>4096 or len(value)>4096 or re.search(r'[\x00-\x1f<>]',value):
+            raise ValueError('Unexpected locale value')
+    return data
+
+def verify_locale(root):
+    local=(root/'jezgra/urednik/tinymce/langs/hr.js').read_bytes()
+    with npm_package('tinymce-i18n','26.11.2') as tar:
+        official=member(tar,'langs8/hr.js')
+    actual,reference=translation_data(local),translation_data(official)
+    if actual.keys()!=reference.keys():
+        raise ValueError('Locale keys differ from versioned community pack')
+    for key in actual:
+        if sorted(re.findall(r'\{\d+\}',actual[key]))!=sorted(re.findall(r'\{\d+\}',reference[key])):
+            raise ValueError('Locale placeholder mismatch: '+key)
+    return {'reference_package':'tinymce-i18n@26.11.2','reference_sha256':hashlib.sha256(official).hexdigest(),
+            'local_sha256':hashlib.sha256(local).hexdigest(),'keys':len(actual),
+            'custom_values':sum(actual[k]!=reference[k] for k in actual),
+            'scope':'strict static translation data and key/placeholder compatibility; not identical upstream bytes or license clearance'}
+
 def verify_tiny_assets(root, version, dom_verified, prism_verified):
     if not dom_verified or not prism_verified:
         raise ValueError('Embedded library provenance must be verified first')
@@ -96,6 +136,9 @@ def verify_tiny_assets(root, version, dom_verified, prism_verified):
             if rel in notices:
                 continue
             local=path.read_bytes()
+            if rel=='langs/hr.js':
+                evidence[rel]=verify_locale(root)
+                continue
             upstream=member(tar,rel)
             if rel=='tinymce.min.js':
                 # Original declaration may be part of a comma-separated var
@@ -119,3 +162,45 @@ def verify_tiny_assets(root, version, dom_verified, prism_verified):
             else:
                 evidence[rel]=hashlib.sha256(local).hexdigest()
     return evidence
+
+
+def verify_prism_theme_distribution(root, tiny_version, theme_version, verified_assets):
+    # The theme CSS is compiled inside TinyMCE, not a standalone Prism package.
+    # Require exact verified TinyMCE skin bytes and the publisher's own notice.
+    with npm_package('tinymce',tiny_version) as tar:
+        notices=member(tar,'notices.txt').decode('utf-8')
+        if not re.search(r'(?m)^prism-themes\s*\n(?:(?!\n\s*\n)[\s\S])*?^version:\s*'+re.escape(theme_version)+r'\s*$',notices):
+            raise ValueError('Upstream theme version notice missing')
+        skins=[p for p in verified_assets if p.startswith('skins/') and p.endswith('.css')]
+        if not skins:
+            raise ValueError('No verified upstream skin assets')
+        for rel in skins:
+            if hashlib.sha256(member(tar,rel)).hexdigest()!=verified_assets[rel]:
+                raise ValueError('Skin digest mismatch: '+rel)
+    return {'embedded_in':'tinymce@'+tiny_version,'upstream_notices_version':theme_version,'verified_skins':skins}
+
+def verify_bundled_popper(root, bootstrap_version, popper_version):
+    # Verify the exact distributed bundle, then its publisher-supplied source
+    # map's Popper source contents against the pinned Popper package.
+    with npm_package('bootstrap',bootstrap_version) as tar:
+        bundle=member(tar,'dist/js/bootstrap.bundle.min.js')
+        if bundle!=(root/'jezgra/js/bootstrap.bundle.min.js').read_bytes():
+            raise ValueError('Bootstrap bundle differs')
+        source_map=json.loads(member(tar,'dist/js/bootstrap.bundle.min.js.map'))
+    sources=source_map['sources']; contents=source_map['sourcesContent']
+    if len(sources)!=len(contents):
+        raise ValueError('Invalid source map')
+    checked={}
+    with npm_package('@popperjs/core',popper_version) as tar:
+        for path,content in zip(sources,contents):
+            match=re.search(r'(?:^|/)@popperjs/core/(lib/[^?#]+\.js)$',path)
+            if not match:
+                continue
+            rel=match.group(1)
+            if '..' in rel.split('/') or not isinstance(content,str) or member(tar,rel)!=content.encode('utf-8'):
+                raise ValueError('Popper source mismatch: '+rel)
+            checked[rel]=hashlib.sha256(content.encode('utf-8')).hexdigest()
+    if len(checked)<10:
+        raise ValueError('Insufficient Popper source map evidence')
+    return {'bundle_sha256':hashlib.sha256(bundle).hexdigest(),'matched_sources':checked,
+            'scope':'exact upstream Bootstrap bundle and publisher source-map attribution; not independent reproducible build'}

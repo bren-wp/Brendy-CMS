@@ -141,3 +141,6 @@ The dependency audit now verifies the exact embedded DOMPurify distribution and 
 
 ### jQuery UI upstream distribution
 The custom 1.14.2 build was replaced with the official distribution at upstream commit `eda7aa34fa59d8f764b2164be3e3b7f14639b0db`. Every module listed in the old build is present in the new build. The dependency audit now requires byte equality against that exact upstream file. Browser and CMS regressions remain mandatory; the other unresolved dependencies are not waived.
+
+### Locale and bundled dependency evidence
+The Croatian editor translation is distributed separately from the TinyMCE npm package. The audit parses a single static addI18n call without executing JavaScript, rejects duplicate or dangerous keys and markup/control characters, and compares the keys and substitution placeholders with tinymce-i18n 26.11.2. Existing Croatian wording is retained. This proves format and compatibility, not that customized translations are byte-identical or cleared for redistribution. Prism theme attribution requires verified TinyMCE skin bytes and the upstream version notice. Popper attribution requires the exact Bootstrap bundle and matching upstream source-map contents from @popperjs/core. Legacy sortable provenance remains unresolved and must not be bypassed.
