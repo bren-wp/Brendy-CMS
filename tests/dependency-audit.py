@@ -79,10 +79,30 @@ def verify_jquery_ui(entry):
  entry['provenance']='official-distribution-code-match'
  entry['source_sha256']=hashlib.sha256(data).hexdigest()
 
+# Verify documented custom editor integrations without accepting a version banner or local hash as proof.
+# Exact component comparison is independent from the full editor asset verification.
+if '--verify-registry' in sys.argv:
+ from editor_provenance import verify_dompurify, verify_prism, verify_tiny_assets
+ by_name={entry['name']:entry for entry in components}
+ for name, verifier in [('dompurify',verify_dompurify),('prismjs',verify_prism)]:
+  entry=by_name[name]
+  try:
+   entry['embedded_sha256']=verifier(root,entry['declared_version'])
+   entry['provenance']='registry-embedded-code-match'
+  except (OSError,ValueError,KeyError,StopIteration,tarfile.TarError) as e:
+   entry['provenance_error']=str(e)
+ tiny=by_name['tinymce']
+ try:
+  tiny['verified_assets']=verify_tiny_assets(root,tiny['declared_version'],by_name['dompurify']['provenance']!='unverified',by_name['prismjs']['provenance']!='unverified')
+  tiny['provenance']='registry-assets-and-documented-patches-match'
+ except (OSError,ValueError,KeyError,StopIteration,tarfile.TarError) as e:
+  tiny['provenance_error']=str(e)
+
 # Optional network provenance check, separate from advisory lookup. No package scripts executed.
 if '--verify-registry' in sys.argv:
  for entry,q in queries:
   eco,pkg,files=mappings[entry['name']]
+  if entry['name'] in ('tinymce','dompurify','prismjs'):continue
   if entry['name'] in ('parsedown','jquery-ui'):
    try:
     (verify_parsedown if entry['name']=='parsedown' else verify_jquery_ui)(entry)
