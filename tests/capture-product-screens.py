@@ -6,6 +6,7 @@ credentials, sessions, server logs or installation configuration are committed.
 """
 import os
 import pathlib
+import re
 import secrets
 import shutil
 import socket
@@ -58,7 +59,7 @@ with tempfile.TemporaryDirectory(prefix='brendy-capture-') as tmp:
         captured.mkdir()
         with sync_playwright() as pw:
             browser = pw.chromium.launch(executable_path=os.environ.get('CHROMIUM',shutil.which('google-chrome') or ''),args=['--no-sandbox'])
-            context = browser.new_context(viewport={'width':1440,'height':1000},device_scale_factor=1,color_scheme='light',locale='hr-HR')
+            context = browser.new_context(viewport={'width':1440,'height':1000},device_scale_factor=1,color_scheme='light',locale='hr-HR',timezone_id='Europe/Zagreb')
             # Browser must never contact an external service or customer site.
             context.route('**/*',lambda route:route.continue_() if route.request.url.startswith(base+'/') or route.request.url.startswith(('data:','blob:')) else route.abort())
             page = context.new_page()
@@ -77,10 +78,20 @@ with tempfile.TemporaryDirectory(prefix='brendy-capture-') as tmp:
             shot('installer')
             page.locator('#jsemail').fill('admin@example.com')
             page.locator('#jspassword').fill(password)
-            page.locator('#jsformInstaller button[type=submit]').click()
-            page.wait_for_url(base+'/',timeout=45000)
+            print('[INSTALL] Submitting the real installer form',flush=True)
+            with page.expect_response(lambda r: r.request.method=='POST' and r.url.split('?')[0]==base+'/install.php',timeout=30000) as submission:
+                page.locator('#jsformInstaller button[type=submit]').click(timeout=15000)
+            result=submission.value
+            print('[INSTALL] HTTP status '+str(result.status),flush=True)
+            if result.status not in (301,302,303):
+                # Only print the visible validation message, never form data.
+                alert=page.locator('.alert-danger,.error-table').first
+                reason=alert.inner_text(timeout=3000) if alert.count() and alert.is_visible() else 'no visible installer validation message'
+                raise RuntimeError('Installation rejected: '+reason.replace(password,'[redacted]')[:500])
             if not (site/'sadrzaj/databases/site.php').is_file():
                 raise RuntimeError('Installer did not publish site database')
+            page.wait_for_url(base+'/',timeout=15000)
+            print('[PASS] Fresh flat-file installation completed',flush=True)
             open_page('/','body')
             shot('website')
             page.set_viewport_size({'width':390,'height':844})
@@ -91,8 +102,11 @@ with tempfile.TemporaryDirectory(prefix='brendy-capture-') as tmp:
             shot('login')
             page.locator('#jsusername').fill('admin')
             page.locator('#jspassword').fill(password)
-            page.locator('button[name=save]').click()
-            page.locator('#dashboard').wait_for(state='visible',timeout=30000)
+            print('[LOGIN] Signing in to the isolated demo',flush=True)
+            with page.expect_response(lambda r:r.request.method=='POST' and r.url.startswith(base+'/admin/'),timeout=20000) as login:
+                page.locator('button[name=save]').click(timeout=15000)
+            print('[LOGIN] HTTP status '+str(login.value.status),flush=True)
+            page.locator('#dashboard').wait_for(state='visible',timeout=20000)
             shot('dashboard')
             for route,name in [('content','content'),('themes','themes'),('plugins','extensions')]:
                 open_page('/admin/'+route,'.brendy-admin-main')
@@ -142,6 +156,16 @@ Actual product screens from a fresh Brendy CMS installation.
         if text.count(marker)!=1: raise RuntimeError('README gallery marker missing or ambiguous')
         readme.write_text(text.replace(marker,gallery),encoding='utf-8')
         print('[PASS] All nine actual screens captured; README gallery prepared',flush=True)
+    except Exception as exc:
+        # Local server log diagnostics only; never publish the demo files or
+        # request bodies. Redact generated credentials and random hex tokens.
+        log=temp/'error.log'
+        if log.is_file():
+            lines=subprocess.run(['sudo','tail','-n','35',str(log)],capture_output=True,text=True,check=False).stdout
+            lines=lines.replace(locals().get('password','__missing_password__'),'[redacted]')
+            lines=re.sub(r'\b[0-9a-fA-F]{24,}\b','[redacted]',lines)
+            print('[APACHE] '+lines,flush=True)
+        raise
     finally:
         subprocess.run(['sudo','apache2','-f',str(conf),'-k','stop'],check=False,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         try: proc.wait(timeout=10)

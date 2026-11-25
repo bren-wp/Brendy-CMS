@@ -3,7 +3,7 @@
 
 # Your website. Your content. Your control.
 
-**Brendy CMS** is a self-hosted flat-file content management system by **Brendigo LTD**.
+**Brendy CMS 2.42.28** · Self-hosted flat-file content management by **Brendigo LTD**.
 
 Create beautiful websites, publish with confidence and manage everything from one intuitive workspace.
 
